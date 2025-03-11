@@ -8,21 +8,26 @@
     android:orientation="vertical"
     tools:context=".MainActivity">
 
+    <Spinner
+        android:id="@+id/productSpinner"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
     <EditText
         android:id="@+id/palletEditText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:ems="10"
         android:hint="Numero serie de pallet..."
-        android:inputType="text" />
+        android:inputType="number" />
 
     <EditText
-        android:id="@+id/kitchenEditText"
+        android:id="@+id/productEditText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:ems="10"
-        android:hint="Numero serie de cocina..."
-        android:inputType="text" />
+        android:hint="Numero serie de producto..."
+        android:inputType="number" />
 
     <TextView
         android:id="@+id/palletTextView"
@@ -30,8 +35,17 @@
         android:layout_height="wrap_content" />
 
     <ListView
-        android:id="@+id/kitchensListView"
+        android:id="@+id/productsListView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <Button
+        android:id="@+id/submitButton"
+        android:layout_gravity="center_horizontal"
+        android:layout_width="150dp"
+        android:layout_height="wrap_content"
+        android:text="Confirmar" />
+
 
 </LinearLayout>
