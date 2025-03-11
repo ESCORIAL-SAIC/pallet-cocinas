@@ -14,6 +14,8 @@ import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.Spinner
 import android.widget.Toast
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
@@ -40,6 +42,16 @@ class MainActivity : AppCompatActivity() {
         submitButton.setOnClickListener { submit() }
 
         palletEditText.requestFocus()
+
+        lifecycleScope.launch {
+            try {
+                val datos = ApiClient.apiService.getPallets()
+                Log.d("API_RESPONSE", datos.toString())
+            } catch (e: Exception) {
+                Log.e("API_ERROR", "Error al obtener datos", e)
+            }
+        }
+
     }
 
     private fun createEnterListener(type: String): TextView.OnEditorActionListener {
@@ -98,14 +110,14 @@ class MainActivity : AppCompatActivity() {
             productEditText.requestFocus()
             return
         }
-        val product = products.find { it.serial == productSerial }
+        val product = products.find { it.numero == productSerial }
         if (product == null) {
             log("Product", "Product not found")
             productEditText.text.clear()
             productEditText.requestFocus()
             return
         }
-        if (product.palletized) {
+        if (product.ingreso_stock) {
             log("Product", "Product palletized")
             productEditText.text.clear()
             productEditText.requestFocus()
@@ -118,7 +130,7 @@ class MainActivity : AppCompatActivity() {
             return
         }
         log("Product", "Product found")
-        if (!productsList.isEmpty() && productsList.last().code != product.code) {
+        if (!productsList.isEmpty() && productsList.last().idproducto != product.idproducto) {
             log("Product", "Product type incorrect")
             productEditText.text.clear()
             productEditText.requestFocus()
@@ -133,7 +145,7 @@ class MainActivity : AppCompatActivity() {
     private fun handlePallet() {
         log("Pallet", "Pallet: ${palletEditText.text}")
         val pallets = Pallet.getPallets()
-        val pallet = pallets.find { it.code == palletEditText.text.toString() }
+        val pallet = pallets.find { it.codigo == palletEditText.text.toString() }
         if (pallet == null) {
             log("Pallet", "Pallet not found")
             palletEditText.text.clear()
@@ -141,14 +153,14 @@ class MainActivity : AppCompatActivity() {
             return
         }
         log("Pallet", "Pallet found")
-        if (pallet.products != null && pallet.products!!.isNotEmpty()) {
-            for (product in pallet.products) {
+        if (pallet.cenker_prod_x_pallet != null && pallet.cenker_prod_x_pallet!!.isNotEmpty()) {
+            for (product in pallet.cenker_prod_x_pallet) {
                 productsList.add(product)
             }
             productsAdapter.notifyDataSetChanged()
         }
 
-        palletTextView.text = "Pallet: ${palletEditText.text} (${pallet.products?.firstOrNull()?.code ?: "vacio"})"
+        palletTextView.text = "Pallet: ${palletEditText.text} (${pallet.cenker_prod_x_pallet?.firstOrNull()?.numero ?: "vacio"})"
         palletEditText.isEnabled = false
         productEditText.isEnabled = true
         productEditText.requestFocus()
@@ -157,8 +169,8 @@ class MainActivity : AppCompatActivity() {
     private fun submit() {
         if (productsList.isEmpty()) return
         for (product in productsList) {
-            if (selectedProductType == "COCINA") Product.updateStockedKitchen(product.serial, true)
-            else if (selectedProductType == "TERMO/CALEFON") Product.updateStockedHeater(product.serial, true)
+            //if (selectedProductType == "COCINA") Product.updateStockedKitchen(product.serial, true)
+            //else if (selectedProductType == "TERMO/CALEFON") Product.updateStockedHeater(product.serial, true)
         }
         Pallet.updateProductsInPallet(palletEditText.text.toString(), productsList)
         val intent = intent

@@ -1,21 +1,19 @@
 package com.escorial.pallet_cocinas
 
+import java.util.UUID
+
 data class Pallet(
-    val id: Int,
-    val code: String,
-    var products: ArrayList<Product>?
+    val id: UUID,
+    val codigo: String,
+    val descripcion: String,
+    val fecha_alta: String,
+    var cenker_prod_x_pallet: ArrayList<Product>?
 ) {
     companion object {
-        private val pallets = arrayListOf<Pallet>(
-            Pallet(1, "1", null),
-            Pallet(2, "2", null),
-            Pallet(3, "3", null),
-            Pallet(4, "4", null),
-            Pallet(5, "5", null)
-        )
+        private val pallets = ArrayList<Pallet>()
 
         fun updateProductsInPallet(palletCode: String, productsToAdd: ArrayList<Product>) {
-            pallets.find { it.code == palletCode }?.products = productsToAdd
+            pallets.find { it.codigo == palletCode }?.cenker_prod_x_pallet = productsToAdd
         }
 
         fun getPallets(): ArrayList<Pallet> = pallets
