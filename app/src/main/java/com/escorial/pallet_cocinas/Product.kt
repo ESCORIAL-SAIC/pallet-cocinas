@@ -1,19 +1,13 @@
 package com.escorial.pallet_cocinas
 
+import java.util.UUID
+
 data class Product(
-    val numero: String,
-    val idproducto: String,
+    val serial: String,
+    val productId: UUID,
+    val productCode: String,
+    val description: String,
+    val type: String,
     val maxCantByPallet: Int,
-    var ingreso_stock: Boolean
-) {
-    companion object {
-
-        private val kitchens = ArrayList<Product>()
-
-        private val heaters = ArrayList<Product>()
-
-        fun getKitchens(): ArrayList<Product> = kitchens
-        fun getHeaters(): ArrayList<Product> = heaters
-
-    }
-}
+    var isAvailable: Boolean
+)
