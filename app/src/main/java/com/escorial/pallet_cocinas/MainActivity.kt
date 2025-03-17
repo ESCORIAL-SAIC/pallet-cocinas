@@ -14,6 +14,10 @@ import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.Spinner
 import android.widget.Toast
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
+import retrofit2.HttpException
+import java.io.IOException
 
 class MainActivity : AppCompatActivity() {
 
@@ -37,6 +41,7 @@ class MainActivity : AppCompatActivity() {
 
         productEditText.setOnEditorActionListener(createEnterListener("product"))
         palletEditText.setOnEditorActionListener(createEnterListener("pallet"))
+
         submitButton.setOnClickListener { submit() }
 
         palletEditText.requestFocus()
@@ -44,111 +49,117 @@ class MainActivity : AppCompatActivity() {
 
     private fun createEnterListener(type: String): TextView.OnEditorActionListener {
         return TextView.OnEditorActionListener { v, actionId, event ->
-            log("EnterListener", "Enter key event - type: $type, actionId: $actionId, event: $event")
             if (actionId == EditorInfo.IME_ACTION_DONE || actionId == 5 ||
                 (event?.keyCode == KeyEvent.KEYCODE_ENTER && event.action == KeyEvent.ACTION_DOWN)
             ) {
-                log("EnterListener", "Enter key event detected")
                 when (type) {
-                    "product" -> handleProduct()
-                    "pallet" -> handlePallet()
+                    "product" -> coroutineProduct()
+                    "pallet" -> coroutinePallet()
                 }
-
                 v.clearFocus()
                 val imm = getSystemService(InputMethodManager::class.java)
                 imm.hideSoftInputFromWindow(v.windowToken, 0)
-
                 return@OnEditorActionListener true
             }
             false
         }
     }
 
-    private fun handleProduct() {
-        log("Product", "Product: ${productEditText.text}")
-        val productSerial = productEditText.text.toString()
-        var products = ArrayList<Product>()
-        if (selectedProductType == "COCINA") {
-            log("Product", "Product type: COCINA")
-            products = Product.getKitchens()
+    private fun coroutineProduct() {
+        lifecycleScope.launch {
+            try {
+                val productSerial = productEditText.text.toString()
+                if (productSerial.isEmpty()) {
+                    productEditText.text.clear()
+                    productEditText.requestFocus()
+                    throw Exception("Campo de producto vacío")
+                }
+                var product = if (selectedProductType == "COCINA") {
+                    ApiClient.apiService.getKitchen(productSerial.toInt())
+                } else if (selectedProductType == "TERMO/CALEFON") {
+                    ApiClient.apiService.getHeater(productSerial.toInt())
+                } else {
+                    Toast.makeText(this@MainActivity, "Debe seleccionar un tipo de producto para continuar", Toast.LENGTH_LONG).show()
+                    throw Exception("Debe seleccionar un tipo de producto para continuar")
+                }
+                handleProduct(product)
+            } catch (h: HttpException) {
+                if(h.code() == 404)
+                    Toast.makeText(this@MainActivity, "No se encontró el número de serie.", Toast.LENGTH_LONG).show()
+            } catch (i: IOException) {
+                Toast.makeText(this@MainActivity, "Error de conexion. ${i.message}", Toast.LENGTH_LONG).show()
+            } catch (e: Exception) {
+                log("API_ERROR", "Error al obtener datos. ${e.message}")
+            }
         }
-        else if (selectedProductType == "TERMO/CALEFON") {
-            log("Product", "Product type: TERMO/CALEFON")
-            products = Product.getHeaters()
-        }
-        else {
-            Toast.makeText(this@MainActivity, "Debe seleccionar un tipo de producto para continuar", Toast.LENGTH_LONG).show()
-            return
-        }
-        if (productSerial.isEmpty()) {
-            log("Product", "Product is empty")
+    }
+
+    private fun handleProduct(product: Product) {
+        if (!product.isAvailable) {
+            log("Product", "Producto ya palletizado")
             productEditText.text.clear()
             productEditText.requestFocus()
             return
         }
-        if (products.isEmpty()) {
-            log("Product", "Product list is empty")
-            productEditText.text.clear()
-            productEditText.requestFocus()
-            return
-        }
-        if (productsList.count() == 8) {
-            log("Product", "Product list is full")
-            productEditText.text.clear()
-            productEditText.requestFocus()
-            return
-        }
-        val product = products.find { it.serial == productSerial }
-        if (product == null) {
-            log("Product", "Product not found")
-            productEditText.text.clear()
-            productEditText.requestFocus()
-            return
-        }
-        if (product.palletized) {
-            log("Product", "Product palletized")
+        if (productsList.count() == product.maxCantByPallet) {
+            log("Product", "Cantidad máxima de productos por pallet alcanzada")
             productEditText.text.clear()
             productEditText.requestFocus()
             return
         }
         if (productsList.contains(product)){
-            log("Product", "Product selected before")
+            log("Product", "El producto ya fue pickeado")
             productEditText.text.clear()
             productEditText.requestFocus()
             return
         }
-        log("Product", "Product found")
-        if (!productsList.isEmpty() && productsList.last().code != product.code) {
-            log("Product", "Product type incorrect")
+        if (!productsList.isEmpty() && productsList.last().productId != product.productId) {
+            log("Product", "Tipo de producto incorrecto")
             productEditText.text.clear()
             productEditText.requestFocus()
             return
         }
+
         productsList.add(product)
         productEditText.text.clear()
         productsAdapter.notifyDataSetChanged()
         productEditText.requestFocus()
     }
 
-    private fun handlePallet() {
-        log("Pallet", "Pallet: ${palletEditText.text}")
-        val pallets = Pallet.getPallets()
-        val pallet = pallets.find { it.code == palletEditText.text.toString() }
-        if (pallet == null) {
-            log("Pallet", "Pallet not found")
-            palletEditText.text.clear()
-            palletEditText.requestFocus()
-            return
+    private fun coroutinePallet() {
+        lifecycleScope.launch {
+            try {
+                var palletCode = palletEditText.text.toString()
+                var pallet = ApiClient.apiService.getPallet(palletCode)
+                pallet.Products = ApiClient.apiService.getPalletProducts(palletCode)
+                handlePallet(pallet)
+            } catch (h: HttpException) {
+                if(h.code() == 404)
+                    log("API_ERROR", "No se encontró el número de pallet. ${h.message}")
+            } catch (i: IOException) {
+                log("API_ERROR", "Error de conexion. ${i.message}")
+            } catch (e: Exception) {
+                log("API_ERROR", "Error al obtener datos. ${e.message}")
+            }
         }
-        log("Pallet", "Pallet found")
-        if (pallet.products != null && pallet.products!!.isNotEmpty()) {
-            for (product in pallet.products) {
+    }
+
+    private fun handlePallet(pallet: Pallet) {
+        if (pallet.Products != null && pallet.Products!!.isNotEmpty()) {
+            for (product in pallet.Products) {
                 productsList.add(product)
             }
             productsAdapter.notifyDataSetChanged()
+            if (pallet.Products?.firstOrNull()?.type == "COCINA") {
+                productSpinner.setSelection(0)
+                productSpinner.isEnabled = false
+            }
+            else if (pallet.Products?.firstOrNull()?.type == "TERMOTANQUE") {
+                productSpinner.setSelection(1)
+                productSpinner.isEnabled = false
+            }
         }
-
-        palletTextView.text = "Pallet: ${palletEditText.text} (${pallet.products?.firstOrNull()?.code ?: "vacio"})"
+        palletTextView.text = "Pallet: ${palletEditText.text} (${pallet.Products?.firstOrNull()?.productCode ?: "vacio"})"
         palletEditText.isEnabled = false
         productEditText.isEnabled = true
         productEditText.requestFocus()
@@ -156,14 +167,25 @@ class MainActivity : AppCompatActivity() {
 
     private fun submit() {
         if (productsList.isEmpty()) return
-        for (product in productsList) {
-            if (selectedProductType == "COCINA") Product.updateStockedKitchen(product.serial, true)
-            else if (selectedProductType == "TERMO/CALEFON") Product.updateStockedHeater(product.serial, true)
+        var palletPost = Pallet(
+            id = java.util.UUID.randomUUID(),
+            descripcion = "",
+            fecha_alta = "",
+            codigo = palletEditText.text.toString(),
+            Products = productsList
+        )
+        lifecycleScope.launch {
+            var response = ApiClient.apiService.postPalletProducts(palletPost)
+            if (response.isSuccessful) {
+                Toast.makeText(this@MainActivity, "Productos asociados al pallet", Toast.LENGTH_LONG).show()
+                val intent = intent
+                finish()
+                startActivity(intent)
+            }
+            else {
+                Toast.makeText(this@MainActivity, "Error al asociar productos al pallet", Toast.LENGTH_LONG).show()
+            }
         }
-        Pallet.updateProductsInPallet(palletEditText.text.toString(), productsList)
-        val intent = intent
-        finish()
-        startActivity(intent)
     }
 
     private fun loadControls() {
