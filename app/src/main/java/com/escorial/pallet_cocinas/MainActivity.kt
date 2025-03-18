@@ -17,6 +17,8 @@ import android.widget.ProgressBar
 import android.widget.Spinner
 import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import java.io.IOException
@@ -29,15 +31,15 @@ class MainActivity : AppCompatActivity() {
 
     lateinit var selectedProductType: String
 
+    lateinit var productsRecyclerView: RecyclerView
+    lateinit var productAdapter: ProductAdapter
     lateinit var productEditText: EditText
     lateinit var palletEditText: EditText
     lateinit var palletTextView: TextView
-    lateinit var productsListView: ListView
     lateinit var productSpinner: Spinner
     lateinit var submitButton: Button
     lateinit var progressBar: ProgressBar
 
-    lateinit var productsAdapter: ArrayAdapter<Product>
     var productsList: ArrayList<Product> = ArrayList()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -144,7 +146,7 @@ class MainActivity : AppCompatActivity() {
 
         productsList.add(product)
         productEditText.text.clear()
-        productsAdapter.notifyDataSetChanged()
+        productAdapter.notifyDataSetChanged()
         productEditText.requestFocus()
     }
 
@@ -182,7 +184,7 @@ class MainActivity : AppCompatActivity() {
         if (pallet.Products != null && pallet.Products!!.isNotEmpty()) {
             for (product in pallet.Products)
                 productsList.add(product)
-            productsAdapter.notifyDataSetChanged()
+            productAdapter.notifyDataSetChanged()
             if (pallet.Products?.firstOrNull()?.type == "COCINA") {
                 productSpinner.setSelection(0)
                 productSpinner.isEnabled = false
@@ -252,10 +254,11 @@ class MainActivity : AppCompatActivity() {
         productSpinner = findViewById(R.id.productSpinner)
         configProductSpinner()
 
-        productsListView = findViewById(R.id.productsListView)
-        productsAdapter =
-            ArrayAdapter(this, android.R.layout.simple_list_item_1, productsList)
-        productsListView.adapter = productsAdapter
+        productsRecyclerView = findViewById(R.id.productsRecyclerView)
+        productsRecyclerView.layoutManager = LinearLayoutManager(this)
+        productAdapter = ProductAdapter(productsList)
+        productsRecyclerView.adapter = productAdapter
+
     }
 
     private fun configProductSpinner() {
@@ -264,7 +267,7 @@ class MainActivity : AppCompatActivity() {
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         productSpinner.adapter = adapter
         productSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>, view: android.view.View?, position: Int, id: Long) {
+            override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
                 val selectedOption = parent.getItemAtPosition(position).toString()
                 Toast.makeText(this@MainActivity, "Seleccionaste: $selectedOption", Toast.LENGTH_SHORT).show()
                 selectedProductType = selectedOption
@@ -278,7 +281,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun resetUIState() {
         productsList.clear()
-        productsAdapter.notifyDataSetChanged()
+        productAdapter.notifyDataSetChanged()
 
         palletEditText.text.clear()
         palletEditText.isEnabled = true
