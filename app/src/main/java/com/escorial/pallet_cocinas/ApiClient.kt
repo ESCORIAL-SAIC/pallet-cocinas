@@ -1,3 +1,5 @@
+package com.escorial.pallet_cocinas
+
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 

@@ -10,7 +10,6 @@ import android.widget.AdapterView
 import android.widget.EditText
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import android.widget.ListView
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.ProgressBar
