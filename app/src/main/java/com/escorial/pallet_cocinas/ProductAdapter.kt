@@ -11,7 +11,7 @@ class ProductAdapter(private val products: List<Product>) :
 
     class ProductViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val tvProductCode: TextView = view.findViewById(R.id.tvProductCode)
-        val tvProductType: TextView = view.findViewById(R.id.tvProductType)
+        val tvProductSerial: TextView = view.findViewById(R.id.tvProductSerial)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ProductViewHolder {
@@ -23,7 +23,7 @@ class ProductAdapter(private val products: List<Product>) :
     override fun onBindViewHolder(holder: ProductViewHolder, position: Int) {
         val product = products[position]
         holder.tvProductCode.text = "Código: ${product.productCode}"
-        holder.tvProductType.text = "Tipo: ${product.type}"
+        holder.tvProductSerial.text = "Serie: ${product.serial}"
     }
 
     override fun getItemCount() = products.size

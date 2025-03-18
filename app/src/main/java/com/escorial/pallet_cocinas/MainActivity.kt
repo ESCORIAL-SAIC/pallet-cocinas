@@ -36,6 +36,7 @@ class MainActivity : AppCompatActivity() {
     lateinit var productEditText: EditText
     lateinit var palletEditText: EditText
     lateinit var palletTextView: TextView
+    lateinit var productTextView: TextView
     lateinit var productSpinner: Spinner
     lateinit var submitButton: Button
     lateinit var progressBar: ProgressBar
@@ -193,8 +194,10 @@ class MainActivity : AppCompatActivity() {
                 productSpinner.setSelection(1)
                 productSpinner.isEnabled = false
             }
+            var product = pallet.Products?.firstOrNull()
+            productTextView.text = "Producto: ${product?.productCode} - ${product?.description} (${product?.type})"
         }
-        palletTextView.text = "Pallet: ${palletEditText.text} (${pallet.Products?.firstOrNull()?.productCode ?: "vacio"})"
+        palletTextView.text = "Pallet: ${palletEditText.text}"
         palletEditText.isEnabled = false
         productEditText.isEnabled = true
         productEditText.requestFocus()
@@ -249,6 +252,7 @@ class MainActivity : AppCompatActivity() {
         productEditText = findViewById(R.id.productEditText)
         productEditText.isEnabled = false
         palletTextView = findViewById(R.id.palletTextView)
+        productTextView = findViewById(R.id.productTextView)
         submitButton = findViewById(R.id.submitButton)
 
         productSpinner = findViewById(R.id.productSpinner)
