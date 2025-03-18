@@ -3,6 +3,7 @@ package com.escorial.pallet_cocinas
 import android.os.Bundle
 import android.util.Log
 import android.view.KeyEvent
+import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.AdapterView
@@ -12,6 +13,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.widget.ListView
 import android.widget.ArrayAdapter
 import android.widget.Button
+import android.widget.ProgressBar
 import android.widget.Spinner
 import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
@@ -21,6 +23,10 @@ import java.io.IOException
 
 class MainActivity : AppCompatActivity() {
 
+    private var isProductRequestInProgress = false
+    private var isPalletRequestInProgress = false
+    private var isSubmitRequestInProgress = false
+
     lateinit var selectedProductType: String
 
     lateinit var productEditText: EditText
@@ -29,6 +35,7 @@ class MainActivity : AppCompatActivity() {
     lateinit var productsListView: ListView
     lateinit var productSpinner: Spinner
     lateinit var submitButton: Button
+    lateinit var progressBar: ProgressBar
 
     lateinit var productsAdapter: ArrayAdapter<Product>
     var productsList: ArrayList<Product> = ArrayList()
@@ -66,6 +73,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun coroutineProduct() {
+        if (isProductRequestInProgress)
+            return
+        progressBar.visibility = View.VISIBLE
         lifecycleScope.launch {
             try {
                 val productSerial = productEditText.text.toString()
@@ -79,42 +89,54 @@ class MainActivity : AppCompatActivity() {
                 } else if (selectedProductType == "TERMO/CALEFON") {
                     ApiClient.apiService.getHeater(productSerial.toInt())
                 } else {
-                    Toast.makeText(this@MainActivity, "Debe seleccionar un tipo de producto para continuar", Toast.LENGTH_LONG).show()
                     throw Exception("Debe seleccionar un tipo de producto para continuar")
                 }
                 handleProduct(product)
             } catch (h: HttpException) {
                 if(h.code() == 404)
                     Toast.makeText(this@MainActivity, "No se encontró el número de serie.", Toast.LENGTH_LONG).show()
+                else
+                    Toast.makeText(this@MainActivity, "Error HTTP.", Toast.LENGTH_LONG).show()
+                Log.d("API_ERROR", "Error HTTP. ${h.message}")
             } catch (i: IOException) {
-                Toast.makeText(this@MainActivity, "Error de conexion. ${i.message}", Toast.LENGTH_LONG).show()
+                Toast.makeText(this@MainActivity, "Error de conexion.", Toast.LENGTH_LONG).show()
+                Log.d("API_ERROR", "Error de conexion. ${i.message}")
             } catch (e: Exception) {
-                log("API_ERROR", "Error al obtener datos. ${e.message}")
+                Toast.makeText(this@MainActivity, "Error al obtener datos.", Toast.LENGTH_LONG).show()
+                Log.d("API_ERROR", "Error al obtener datos. ${e.message}")
+            }
+            finally {
+                progressBar.visibility = View.GONE
+                isProductRequestInProgress = false
             }
         }
     }
 
     private fun handleProduct(product: Product) {
         if (!product.isAvailable) {
-            log("Product", "Producto ya palletizado")
+            Log.d("Product", "Producto ya palletizado")
+            Toast.makeText(this@MainActivity, "Producto ya palletizado", Toast.LENGTH_LONG).show()
             productEditText.text.clear()
             productEditText.requestFocus()
             return
         }
         if (productsList.count() == product.maxCantByPallet) {
-            log("Product", "Cantidad máxima de productos por pallet alcanzada")
+            Log.d("Product", "Cantidad máxima de productos por pallet alcanzada")
+            Toast.makeText(this@MainActivity, "Cantidad máxima de productos por pallet alcanzada", Toast.LENGTH_LONG).show()
             productEditText.text.clear()
             productEditText.requestFocus()
             return
         }
         if (productsList.contains(product)){
-            log("Product", "El producto ya fue pickeado")
+            Log.d("Product", "El producto ya fue pickeado")
+            Toast.makeText(this@MainActivity, "El producto ya fue pickeado", Toast.LENGTH_LONG).show()
             productEditText.text.clear()
             productEditText.requestFocus()
             return
         }
         if (!productsList.isEmpty() && productsList.last().productId != product.productId) {
-            log("Product", "Tipo de producto incorrecto")
+            Log.d("Product", "Tipo de producto incorrecto")
+            Toast.makeText(this@MainActivity, "Tipo de producto incorrecto", Toast.LENGTH_LONG).show()
             productEditText.text.clear()
             productEditText.requestFocus()
             return
@@ -127,6 +149,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun coroutinePallet() {
+        if (isPalletRequestInProgress)
+            return
+        progressBar.visibility = View.VISIBLE
         lifecycleScope.launch {
             try {
                 var palletCode = palletEditText.text.toString()
@@ -135,20 +160,28 @@ class MainActivity : AppCompatActivity() {
                 handlePallet(pallet)
             } catch (h: HttpException) {
                 if(h.code() == 404)
-                    log("API_ERROR", "No se encontró el número de pallet. ${h.message}")
+                    Toast.makeText(this@MainActivity, "No se encontró el número de pallet.", Toast.LENGTH_LONG).show()
+                else
+                    Toast.makeText(this@MainActivity, "Error HTTP.", Toast.LENGTH_LONG).show()
+                Log.d("API_ERROR", "No se encontró el número de pallet. ${h.message}")
             } catch (i: IOException) {
-                log("API_ERROR", "Error de conexion. ${i.message}")
+                Toast.makeText(this@MainActivity, "Error de conexion.", Toast.LENGTH_LONG).show()
+                Log.d("API_ERROR", "Error de conexion. ${i.message}")
             } catch (e: Exception) {
-                log("API_ERROR", "Error al obtener datos. ${e.message}")
+                Toast.makeText(this@MainActivity, "Error al obtener datos.", Toast.LENGTH_LONG).show()
+                Log.d("API_ERROR", "Error al obtener datos. ${e.message}")
+            }
+            finally {
+                progressBar.visibility = View.GONE
+                isPalletRequestInProgress = false
             }
         }
     }
 
     private fun handlePallet(pallet: Pallet) {
         if (pallet.Products != null && pallet.Products!!.isNotEmpty()) {
-            for (product in pallet.Products) {
+            for (product in pallet.Products)
                 productsList.add(product)
-            }
             productsAdapter.notifyDataSetChanged()
             if (pallet.Products?.firstOrNull()?.type == "COCINA") {
                 productSpinner.setSelection(0)
@@ -166,7 +199,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun submit() {
-        if (productsList.isEmpty()) return
+        if (isSubmitRequestInProgress)
+            return
+        if (productsList.isEmpty())
+            return
+        progressBar.visibility = View.VISIBLE
         var palletPost = Pallet(
             id = java.util.UUID.randomUUID(),
             descripcion = "",
@@ -175,21 +212,37 @@ class MainActivity : AppCompatActivity() {
             Products = productsList
         )
         lifecycleScope.launch {
-            var response = ApiClient.apiService.postPalletProducts(palletPost)
-            if (response.isSuccessful) {
-                Toast.makeText(this@MainActivity, "Productos asociados al pallet", Toast.LENGTH_LONG).show()
-                val intent = intent
-                finish()
-                startActivity(intent)
+            try {
+                var response = ApiClient.apiService.postPalletProducts(palletPost)
+                if (response.isSuccessful) {
+                    Toast.makeText(this@MainActivity, "Productos asociados al pallet", Toast.LENGTH_LONG).show()
+                    Log.d("Product", "Productos asociados al pallet. $palletPost")
+                    resetUIState()
+                }
+                else {
+                    Toast.makeText(this@MainActivity, "Error al asociar productos al pallet", Toast.LENGTH_LONG).show()
+                    Log.d("Product", "Error al asociar productos al pallet. $palletPost")
+                }
+            } catch (h: HttpException) {
+                Toast.makeText(this@MainActivity, "Error HTTP.", Toast.LENGTH_LONG).show()
+                Log.d("API_ERROR", "Error HTTP. ${h.message}")
+            } catch (i: IOException) {
+                Toast.makeText(this@MainActivity, "Error de conexion.", Toast.LENGTH_LONG).show()
+                Log.d("API_ERROR", "Error de conexion. ${i.message}")
+            } catch (e: Exception) {
+                Toast.makeText(this@MainActivity, "Error al obtener datos.", Toast.LENGTH_LONG).show()
+                Log.d("API_ERROR", "Error al obtener datos. ${e.message}")
             }
-            else {
-                Toast.makeText(this@MainActivity, "Error al asociar productos al pallet", Toast.LENGTH_LONG).show()
+            finally {
+                progressBar.visibility = View.GONE
+                isSubmitRequestInProgress = false
             }
         }
     }
 
     private fun loadControls() {
-        log("LoadControls", "Loading controls")
+        Log.d("LoadControls", "Loading controls")
+        progressBar = findViewById(R.id.progressBar)
         palletEditText = findViewById(R.id.palletEditText)
         productEditText = findViewById(R.id.productEditText)
         productEditText.isEnabled = false
@@ -223,8 +276,19 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun log(title: String, message: String) {
-        Log.d(title, message)
-        Toast.makeText(this, "$title: $message", Toast.LENGTH_SHORT).show()
+    private fun resetUIState() {
+        productsList.clear()
+        productsAdapter.notifyDataSetChanged()
+
+        palletEditText.text.clear()
+        palletEditText.isEnabled = true
+        productEditText.text.clear()
+        productEditText.isEnabled = false
+        palletTextView.text = "Pallet: "
+
+        productSpinner.isEnabled = true
+        productSpinner.setSelection(0)
+
+        palletEditText.requestFocus()
     }
 }
