@@ -50,6 +50,13 @@ class MainActivity : AppCompatActivity() {
 
         loadControls()
 
+        val topBar = findViewById<TopBar>(R.id.topBar)
+        topBar.setUserInfo("Usuario", "Nombre Completo")
+        topBar.setLogoutButtonVisibility(true)
+        topBar.setOnLogoutClickListener  {
+            Toast.makeText(this@MainActivity, "Logout", Toast.LENGTH_SHORT).show()
+        }
+
         productEditText.setOnEditorActionListener(createEnterListener("product"))
         palletEditText.setOnEditorActionListener(createEnterListener("pallet"))
 

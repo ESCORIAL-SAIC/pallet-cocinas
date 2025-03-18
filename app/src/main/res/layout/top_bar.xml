@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="65dp"
+    android:orientation="horizontal"
+    android:padding="10dp"
+    android:background="@drawable/rounded_bottom_bg">
+
+    <!-- Logo -->
+    <ImageView
+        android:id="@+id/logoImageView"
+        android:layout_width="90dp"
+        android:layout_height="50dp"
+        android:layout_gravity="start"
+        android:src="@drawable/ic_launcher_foreground" />
+
+    <!-- Username and Full Name -->
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:gravity="end"
+        android:paddingEnd="10dp">
+
+        <TextView
+            android:id="@+id/usernameLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@android:color/white"
+            android:text="Username"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/completeNameLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@android:color/white"
+            android:text="Full Name"
+            android:visibility="gone" />
+    </LinearLayout>
+
+    <!-- Logout Button -->
+    <Button
+        android:id="@+id/logoutButton"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_gravity="end"
+        android:background="@color/colorPrimary"
+        android:visibility="gone"
+        android:onClick="logoutPressed" />
+</LinearLayout>
