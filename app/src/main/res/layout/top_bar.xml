@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="65dp"
     android:orientation="horizontal"
@@ -41,12 +42,16 @@
     </LinearLayout>
 
     <!-- Logout Button -->
-    <Button
+    <ImageButton
         android:id="@+id/logoutButton"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:layout_gravity="end"
         android:background="@color/colorPrimary"
         android:visibility="gone"
-        android:onClick="logoutPressed" />
+        android:textColor="@android:color/white"
+        android:src="@drawable/logout_24px"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="10dp"
+        app:tint="@color/white" />
 </LinearLayout>

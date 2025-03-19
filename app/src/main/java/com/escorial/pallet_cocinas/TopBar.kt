@@ -3,6 +3,7 @@ package com.escorial.pallet_cocinas
 import android.content.Context
 import android.util.AttributeSet
 import android.view.LayoutInflater
+import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Button
@@ -12,7 +13,7 @@ class TopBar(context: Context, attrs: AttributeSet) : LinearLayout(context, attr
 
     private val usernameLabel: TextView
     private val completeNameLabel: TextView
-    private val logoutButton: Button
+    private val logoutButton: View
 
     init {
         LayoutInflater.from(context).inflate(R.layout.top_bar, this, true)
