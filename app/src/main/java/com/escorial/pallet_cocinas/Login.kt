@@ -7,7 +7,7 @@ data class Login (
     var password: String
 )
 
-data class LoginReponse (
+data class loginResponse (
     var id: UUID,
     var usuario_sistema: String,
     var nombre: String
