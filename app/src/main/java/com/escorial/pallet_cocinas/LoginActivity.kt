@@ -42,7 +42,9 @@ class LoginActivity : AppCompatActivity() {
                 var login = Login(username, password)
                 var response = ApiClient.apiService.postLogin(login)
                 if (response.isSuccessful) {
-                    sharedPreferences.edit { putString("username", username) }
+                    var login = response.body()
+                    sharedPreferences.edit { putString("username", login?.usuario_sistema) }
+                    sharedPreferences.edit { putString("fullName", login?.nombre) }
                     sharedPreferences.edit { putBoolean("isLoggedIn", true) }
                     startMainActivity()
                 }

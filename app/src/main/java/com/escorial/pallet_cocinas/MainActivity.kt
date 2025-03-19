@@ -57,8 +57,9 @@ class MainActivity : AppCompatActivity() {
         val topBar = findViewById<TopBar>(R.id.topBar)
 
         val username = sharedPreferences.getString("username", "null")
+        val fullName = sharedPreferences.getString("fullName", "null")
 
-        topBar.setUserInfo(username, "")
+        topBar.setUserInfo(username, fullName)
         topBar.setLogoutButtonVisibility(true)
         topBar.setOnLogoutClickListener  {
             logout()
