@@ -1,5 +1,7 @@
 package com.escorial.pallet_cocinas
 
+import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
 import android.view.KeyEvent
@@ -22,8 +24,11 @@ import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import java.io.IOException
+import androidx.core.content.edit
 
 class MainActivity : AppCompatActivity() {
+
+    lateinit var sharedPreferences: SharedPreferences
 
     private var isProductRequestInProgress = false
     private var isPalletRequestInProgress = false
@@ -50,9 +55,13 @@ class MainActivity : AppCompatActivity() {
         loadControls()
 
         val topBar = findViewById<TopBar>(R.id.topBar)
-        topBar.setUserInfo("Usuario", "Nombre Completo")
+
+        val username = sharedPreferences.getString("username", "null")
+
+        topBar.setUserInfo(username, "")
         topBar.setLogoutButtonVisibility(true)
         topBar.setOnLogoutClickListener  {
+            logout()
             Toast.makeText(this@MainActivity, "Logout", Toast.LENGTH_SHORT).show()
         }
 
@@ -254,6 +263,8 @@ class MainActivity : AppCompatActivity() {
 
     private fun loadControls() {
         Log.d("LoadControls", "Loading controls")
+        sharedPreferences = getSharedPreferences("user_prefs", MODE_PRIVATE)
+
         progressBar = findViewById(R.id.progressBar)
         palletEditText = findViewById(R.id.palletEditText)
         productEditText = findViewById(R.id.productEditText)
@@ -308,5 +319,14 @@ class MainActivity : AppCompatActivity() {
         productSpinner.setSelection(0)
 
         palletEditText.requestFocus()
+    }
+
+    private fun logout() {
+        val sharedPreferences: SharedPreferences = getSharedPreferences("user_prefs", MODE_PRIVATE)
+        sharedPreferences.edit() { remove("isLoggedIn") }
+
+        val intent = Intent(this, LoginActivity::class.java)
+        startActivity(intent)
+        finish()
     }
 }
