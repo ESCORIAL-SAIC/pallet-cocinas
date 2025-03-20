@@ -25,6 +25,7 @@ import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import java.io.IOException
 import androidx.core.content.edit
+import androidx.recyclerview.widget.ItemTouchHelper
 
 class MainActivity : AppCompatActivity() {
 
@@ -231,19 +232,21 @@ class MainActivity : AppCompatActivity() {
             descripcion = "",
             fecha_alta = "",
             codigo = palletEditText.text.toString(),
-            Products = productsList
+            Products = productsList,
+            Usuario = sharedPreferences.getString("username", "")!!
         )
         lifecycleScope.launch {
             try {
                 var response = ApiClient.apiService.postPalletProducts(palletPost)
                 if (response.isSuccessful) {
                     Toast.makeText(this@MainActivity, "Productos asociados al pallet", Toast.LENGTH_LONG).show()
-                    Log.d("Product", "Productos asociados al pallet. $palletPost")
+                    Log.d("Product", "Productos asociados al pallet. $response")
                     resetUIState()
                 }
                 else {
-                    Toast.makeText(this@MainActivity, "Error al asociar productos al pallet", Toast.LENGTH_LONG).show()
-                    Log.d("Product", "Error al asociar productos al pallet. $palletPost")
+                    var error = response.errorBody()?.string()
+                    Toast.makeText(this@MainActivity, "Error al asociar productos al pallet. ${error}", Toast.LENGTH_LONG).show()
+                    Log.d("Product", "Error al asociar productos al pallet. $response")
                 }
             } catch (h: HttpException) {
                 Toast.makeText(this@MainActivity, "Error HTTP.", Toast.LENGTH_LONG).show()
