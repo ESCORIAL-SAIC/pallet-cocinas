@@ -49,6 +49,23 @@ class MainActivity : AppCompatActivity() {
 
     var productsList: ArrayList<Product> = ArrayList()
 
+    val itemTouchHelperCallback = object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
+        override fun onMove(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder): Boolean {
+            return false
+        }
+
+        override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+            val position = viewHolder.adapterPosition
+
+            if (direction == ItemTouchHelper.LEFT) {
+                productsList.removeAt(position)
+                productAdapter.notifyItemRemoved(position)
+            } else if (direction == ItemTouchHelper.RIGHT) {
+                Toast.makeText(this@MainActivity, "Editar item en posición: $position", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -289,6 +306,8 @@ class MainActivity : AppCompatActivity() {
         productAdapter = ProductAdapter(productsList)
         productsRecyclerView.adapter = productAdapter
 
+        val itemTouchHelper = ItemTouchHelper(itemTouchHelperCallback)
+        itemTouchHelper.attachToRecyclerView(productsRecyclerView)
     }
 
     private fun configProductSpinner() {
