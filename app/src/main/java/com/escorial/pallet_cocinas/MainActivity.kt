@@ -1,5 +1,6 @@
 package com.escorial.pallet_cocinas
 
+import android.app.AlertDialog
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
@@ -26,6 +27,7 @@ import retrofit2.HttpException
 import java.io.IOException
 import androidx.core.content.edit
 import androidx.recyclerview.widget.ItemTouchHelper
+import com.google.android.material.snackbar.Snackbar
 
 class MainActivity : AppCompatActivity() {
 
@@ -58,12 +60,37 @@ class MainActivity : AppCompatActivity() {
             val position = viewHolder.adapterPosition
 
             if (direction == ItemTouchHelper.LEFT) {
-                productsList.removeAt(position)
-                productAdapter.notifyItemRemoved(position)
+                swipeAction(position)
             } else if (direction == ItemTouchHelper.RIGHT) {
-                Toast.makeText(this@MainActivity, "Editar item en posición: $position", Toast.LENGTH_SHORT).show()
+                swipeAction(position)
             }
         }
+    }
+
+    private fun swipeAction(position: Int) {
+        AlertDialog.Builder(this)
+            .setTitle("Confirmar eliminación")
+            .setMessage("¿Seguro que quieres desasociar este elemento?")
+            .setPositiveButton("Sí") { _, _ ->
+                deleteItem(position)
+            }
+            .setNegativeButton("Cancelar") { _, _ ->
+                productAdapter.notifyItemChanged(position)
+            }
+            .setCancelable(false)
+            .show()
+    }
+
+    private fun deleteItem(position: Int) {
+        var deletedItem = productsList[position]
+        productsList.removeAt(position)
+        productAdapter.notifyItemRemoved(position)
+        Snackbar.make(productsRecyclerView, "Ítem eliminado", Snackbar.LENGTH_LONG)
+            .setAction("Deshacer") {
+                productsList.add(position, deletedItem)
+                productAdapter.notifyItemInserted(position)
+            }
+            .show()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
