@@ -58,39 +58,69 @@ class MainActivity : AppCompatActivity() {
 
         override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
             val position = viewHolder.adapterPosition
+            val item = productsList[position]
 
-            if (direction == ItemTouchHelper.LEFT) {
-                swipeAction(position)
-            } else if (direction == ItemTouchHelper.RIGHT) {
-                swipeAction(position)
+            if (direction == ItemTouchHelper.LEFT || direction == ItemTouchHelper.RIGHT) {
+                if (!item.deleted)
+                    swipeActionDelete(item)
+                else
+                    swipeActionRestore(item)
             }
         }
     }
 
-    private fun swipeAction(position: Int) {
+    private fun swipeActionRestore(item: Product) {
         AlertDialog.Builder(this)
-            .setTitle("Confirmar eliminación")
-            .setMessage("¿Seguro que quieres desasociar este elemento?")
+            .setTitle("Confirmar restauración")
+            .setMessage("Seguro que quieres volver a asociar este elemento?")
             .setPositiveButton("Sí") { _, _ ->
-                deleteItem(position)
+                restoreItem(item)
             }
             .setNegativeButton("Cancelar") { _, _ ->
+                val position = productsList.indexOf(item)
                 productAdapter.notifyItemChanged(position)
             }
             .setCancelable(false)
             .show()
-    }
 
-    private fun deleteItem(position: Int) {
-        var deletedItem = productsList[position]
-        productsList.removeAt(position)
-        productAdapter.notifyItemRemoved(position)
-        Snackbar.make(productsRecyclerView, "Ítem eliminado", Snackbar.LENGTH_LONG)
+        Snackbar.make(productsRecyclerView, "Ítem restaurado", Snackbar.LENGTH_LONG)
             .setAction("Deshacer") {
-                productsList.add(position, deletedItem)
-                productAdapter.notifyItemInserted(position)
+                deleteItem(item)
             }
             .show()
+    }
+
+    private fun swipeActionDelete(item: Product) {
+        AlertDialog.Builder(this)
+            .setTitle("Confirmar eliminación")
+            .setMessage("Seguro que quieres desasociar este elemento?")
+            .setPositiveButton("Sí") { _, _ ->
+                deleteItem(item)
+            }
+            .setNegativeButton("Cancelar") { _, _ ->
+                val position = productsList.indexOf(item)
+                productAdapter.notifyItemChanged(position)
+            }
+            .setCancelable(false)
+            .show()
+
+        Snackbar.make(productsRecyclerView, "Ítem eliminado", Snackbar.LENGTH_LONG)
+            .setAction("Deshacer") {
+                restoreItem(item)
+            }
+            .show()
+    }
+
+    private fun deleteItem(item: Product) {
+        val position = productsList.indexOf(item)
+        productsList[position].deleted = true
+        productAdapter.notifyItemChanged(position)
+    }
+
+    private fun restoreItem(item: Product) {
+        val position = productsList.indexOf(item)
+        productsList[position].deleted = false
+        productAdapter.notifyItemChanged(position)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
