@@ -1,5 +1,6 @@
 package com.escorial.pallet_cocinas
 
+import android.app.AlertDialog
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
@@ -26,6 +27,7 @@ import retrofit2.HttpException
 import java.io.IOException
 import androidx.core.content.edit
 import androidx.recyclerview.widget.ItemTouchHelper
+import com.google.android.material.snackbar.Snackbar
 
 class MainActivity : AppCompatActivity() {
 
@@ -48,6 +50,76 @@ class MainActivity : AppCompatActivity() {
     lateinit var progressBar: ProgressBar
 
     var productsList: ArrayList<Product> = ArrayList()
+
+    val itemTouchHelperCallback = object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
+        override fun onMove(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder): Boolean {
+            return false
+        }
+
+        override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+            val position = viewHolder.adapterPosition
+            val item = productsList[position]
+
+            if (direction == ItemTouchHelper.LEFT || direction == ItemTouchHelper.RIGHT) {
+                if (!item.deleted)
+                    swipeActionDelete(item)
+                else
+                    swipeActionRestore(item)
+            }
+        }
+    }
+
+    private fun swipeActionRestore(item: Product) {
+        AlertDialog.Builder(this)
+            .setTitle("Confirmar restauración")
+            .setMessage("Seguro que quieres volver a asociar este elemento?")
+            .setPositiveButton("Sí") { _, _ ->
+                restoreItem(item)
+                Snackbar.make(productsRecyclerView, "Ítem restaurado", Snackbar.LENGTH_LONG)
+                    .setAction("Deshacer") {
+                        deleteItem(item)
+                    }
+                    .show()
+            }
+            .setNegativeButton("Cancelar") { _, _ ->
+                val position = productsList.indexOf(item)
+                productAdapter.notifyItemChanged(position)
+            }
+            .setCancelable(false)
+            .show()
+    }
+
+    private fun swipeActionDelete(item: Product) {
+        AlertDialog.Builder(this)
+            .setTitle("Confirmar eliminación")
+            .setMessage("Seguro que quieres desasociar este elemento?")
+            .setPositiveButton("Sí") { _, _ ->
+                deleteItem(item)
+                Snackbar.make(productsRecyclerView, "Ítem eliminado", Snackbar.LENGTH_LONG)
+                    .setAction("Deshacer") {
+                        restoreItem(item)
+                    }
+                    .show()
+            }
+            .setNegativeButton("Cancelar") { _, _ ->
+                val position = productsList.indexOf(item)
+                productAdapter.notifyItemChanged(position)
+            }
+            .setCancelable(false)
+            .show()
+    }
+
+    private fun deleteItem(item: Product) {
+        val position = productsList.indexOf(item)
+        productsList[position].deleted = true
+        productAdapter.notifyItemChanged(position)
+    }
+
+    private fun restoreItem(item: Product) {
+        val position = productsList.indexOf(item)
+        productsList[position].deleted = false
+        productAdapter.notifyItemChanged(position)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -106,9 +178,9 @@ class MainActivity : AppCompatActivity() {
                     throw Exception("Campo de producto vacío")
                 }
                 var product = if (selectedProductType == "COCINA") {
-                    ApiClient.apiService.getKitchen(productSerial.toInt())
+                    ApiClient.apiService.getProduct(productSerial.toInt(), "COCINA")
                 } else if (selectedProductType == "TERMO/CALEFON") {
-                    ApiClient.apiService.getHeater(productSerial.toInt())
+                    ApiClient.apiService.getProduct(productSerial.toInt(), "TERMOTANQUE")
                 } else {
                     throw Exception("Debe seleccionar un tipo de producto para continuar")
                 }
@@ -289,6 +361,8 @@ class MainActivity : AppCompatActivity() {
         productAdapter = ProductAdapter(productsList)
         productsRecyclerView.adapter = productAdapter
 
+        val itemTouchHelper = ItemTouchHelper(itemTouchHelperCallback)
+        itemTouchHelper.attachToRecyclerView(productsRecyclerView)
     }
 
     private fun configProductSpinner() {
@@ -318,6 +392,7 @@ class MainActivity : AppCompatActivity() {
         productEditText.text.clear()
         productEditText.isEnabled = false
         palletTextView.text = "Pallet: "
+        productTextView.text = "Producto: "
 
         productSpinner.isEnabled = true
         productSpinner.setSelection(0)
