@@ -75,18 +75,17 @@ class MainActivity : AppCompatActivity() {
             .setMessage("Seguro que quieres volver a asociar este elemento?")
             .setPositiveButton("Sí") { _, _ ->
                 restoreItem(item)
+                Snackbar.make(productsRecyclerView, "Ítem restaurado", Snackbar.LENGTH_LONG)
+                    .setAction("Deshacer") {
+                        deleteItem(item)
+                    }
+                    .show()
             }
             .setNegativeButton("Cancelar") { _, _ ->
                 val position = productsList.indexOf(item)
                 productAdapter.notifyItemChanged(position)
             }
             .setCancelable(false)
-            .show()
-
-        Snackbar.make(productsRecyclerView, "Ítem restaurado", Snackbar.LENGTH_LONG)
-            .setAction("Deshacer") {
-                deleteItem(item)
-            }
             .show()
     }
 
@@ -96,18 +95,17 @@ class MainActivity : AppCompatActivity() {
             .setMessage("Seguro que quieres desasociar este elemento?")
             .setPositiveButton("Sí") { _, _ ->
                 deleteItem(item)
+                Snackbar.make(productsRecyclerView, "Ítem eliminado", Snackbar.LENGTH_LONG)
+                    .setAction("Deshacer") {
+                        restoreItem(item)
+                    }
+                    .show()
             }
             .setNegativeButton("Cancelar") { _, _ ->
                 val position = productsList.indexOf(item)
                 productAdapter.notifyItemChanged(position)
             }
             .setCancelable(false)
-            .show()
-
-        Snackbar.make(productsRecyclerView, "Ítem eliminado", Snackbar.LENGTH_LONG)
-            .setAction("Deshacer") {
-                restoreItem(item)
-            }
             .show()
     }
 
@@ -180,9 +178,9 @@ class MainActivity : AppCompatActivity() {
                     throw Exception("Campo de producto vacío")
                 }
                 var product = if (selectedProductType == "COCINA") {
-                    ApiClient.apiService.getKitchen(productSerial.toInt())
+                    ApiClient.apiService.getProduct(productSerial.toInt(), "COCINA")
                 } else if (selectedProductType == "TERMO/CALEFON") {
-                    ApiClient.apiService.getHeater(productSerial.toInt())
+                    ApiClient.apiService.getProduct(productSerial.toInt(), "TERMOTANQUE")
                 } else {
                     throw Exception("Debe seleccionar un tipo de producto para continuar")
                 }
@@ -394,6 +392,7 @@ class MainActivity : AppCompatActivity() {
         productEditText.text.clear()
         productEditText.isEnabled = false
         palletTextView.text = "Pallet: "
+        productTextView.text = "Producto: "
 
         productSpinner.isEnabled = true
         productSpinner.setSelection(0)
