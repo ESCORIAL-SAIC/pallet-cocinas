@@ -1,5 +1,8 @@
 package com.escorial.pallet_cocinas
 
+import android.app.AlertDialog
+import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
 import android.view.KeyEvent
@@ -22,8 +25,13 @@ import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import java.io.IOException
+import androidx.core.content.edit
+import androidx.recyclerview.widget.ItemTouchHelper
+import com.google.android.material.snackbar.Snackbar
 
 class MainActivity : AppCompatActivity() {
+
+    lateinit var sharedPreferences: SharedPreferences
 
     private var isProductRequestInProgress = false
     private var isPalletRequestInProgress = false
@@ -43,6 +51,76 @@ class MainActivity : AppCompatActivity() {
 
     var productsList: ArrayList<Product> = ArrayList()
 
+    val itemTouchHelperCallback = object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
+        override fun onMove(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder): Boolean {
+            return false
+        }
+
+        override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+            val position = viewHolder.adapterPosition
+            val item = productsList[position]
+
+            if (direction == ItemTouchHelper.LEFT || direction == ItemTouchHelper.RIGHT) {
+                if (!item.deleted)
+                    swipeActionDelete(item)
+                else
+                    swipeActionRestore(item)
+            }
+        }
+    }
+
+    private fun swipeActionRestore(item: Product) {
+        AlertDialog.Builder(this)
+            .setTitle("Confirmar restauración")
+            .setMessage("Seguro que quieres volver a asociar este elemento?")
+            .setPositiveButton("Sí") { _, _ ->
+                restoreItem(item)
+                Snackbar.make(productsRecyclerView, "Ítem restaurado", Snackbar.LENGTH_LONG)
+                    .setAction("Deshacer") {
+                        deleteItem(item)
+                    }
+                    .show()
+            }
+            .setNegativeButton("Cancelar") { _, _ ->
+                val position = productsList.indexOf(item)
+                productAdapter.notifyItemChanged(position)
+            }
+            .setCancelable(false)
+            .show()
+    }
+
+    private fun swipeActionDelete(item: Product) {
+        AlertDialog.Builder(this)
+            .setTitle("Confirmar eliminación")
+            .setMessage("Seguro que quieres desasociar este elemento?")
+            .setPositiveButton("Sí") { _, _ ->
+                deleteItem(item)
+                Snackbar.make(productsRecyclerView, "Ítem eliminado", Snackbar.LENGTH_LONG)
+                    .setAction("Deshacer") {
+                        restoreItem(item)
+                    }
+                    .show()
+            }
+            .setNegativeButton("Cancelar") { _, _ ->
+                val position = productsList.indexOf(item)
+                productAdapter.notifyItemChanged(position)
+            }
+            .setCancelable(false)
+            .show()
+    }
+
+    private fun deleteItem(item: Product) {
+        val position = productsList.indexOf(item)
+        productsList[position].deleted = true
+        productAdapter.notifyItemChanged(position)
+    }
+
+    private fun restoreItem(item: Product) {
+        val position = productsList.indexOf(item)
+        productsList[position].deleted = false
+        productAdapter.notifyItemChanged(position)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -50,9 +128,14 @@ class MainActivity : AppCompatActivity() {
         loadControls()
 
         val topBar = findViewById<TopBar>(R.id.topBar)
-        topBar.setUserInfo("Usuario", "Nombre Completo")
+
+        val username = sharedPreferences.getString("username", "null")
+        val fullName = sharedPreferences.getString("fullName", "null")
+
+        topBar.setUserInfo(username, fullName)
         topBar.setLogoutButtonVisibility(true)
         topBar.setOnLogoutClickListener  {
+            logout()
             Toast.makeText(this@MainActivity, "Logout", Toast.LENGTH_SHORT).show()
         }
 
@@ -95,9 +178,9 @@ class MainActivity : AppCompatActivity() {
                     throw Exception("Campo de producto vacío")
                 }
                 var product = if (selectedProductType == "COCINA") {
-                    ApiClient.apiService.getKitchen(productSerial.toInt())
+                    ApiClient.apiService.getProduct(productSerial.toInt(), "COCINA")
                 } else if (selectedProductType == "TERMO/CALEFON") {
-                    ApiClient.apiService.getHeater(productSerial.toInt())
+                    ApiClient.apiService.getProduct(productSerial.toInt(), "TERMOTANQUE")
                 } else {
                     throw Exception("Debe seleccionar un tipo de producto para continuar")
                 }
@@ -221,19 +304,21 @@ class MainActivity : AppCompatActivity() {
             descripcion = "",
             fecha_alta = "",
             codigo = palletEditText.text.toString(),
-            Products = productsList
+            Products = productsList,
+            Usuario = sharedPreferences.getString("username", "")!!
         )
         lifecycleScope.launch {
             try {
                 var response = ApiClient.apiService.postPalletProducts(palletPost)
                 if (response.isSuccessful) {
                     Toast.makeText(this@MainActivity, "Productos asociados al pallet", Toast.LENGTH_LONG).show()
-                    Log.d("Product", "Productos asociados al pallet. $palletPost")
+                    Log.d("Product", "Productos asociados al pallet. $response")
                     resetUIState()
                 }
                 else {
-                    Toast.makeText(this@MainActivity, "Error al asociar productos al pallet", Toast.LENGTH_LONG).show()
-                    Log.d("Product", "Error al asociar productos al pallet. $palletPost")
+                    var error = response.errorBody()?.string()
+                    Toast.makeText(this@MainActivity, "Error al asociar productos al pallet. ${error}", Toast.LENGTH_LONG).show()
+                    Log.d("Product", "Error al asociar productos al pallet. $response")
                 }
             } catch (h: HttpException) {
                 Toast.makeText(this@MainActivity, "Error HTTP.", Toast.LENGTH_LONG).show()
@@ -254,6 +339,8 @@ class MainActivity : AppCompatActivity() {
 
     private fun loadControls() {
         Log.d("LoadControls", "Loading controls")
+        sharedPreferences = getSharedPreferences("user_prefs", MODE_PRIVATE)
+
         progressBar = findViewById(R.id.progressBar)
         palletEditText = findViewById(R.id.palletEditText)
         productEditText = findViewById(R.id.productEditText)
@@ -274,6 +361,8 @@ class MainActivity : AppCompatActivity() {
         productAdapter = ProductAdapter(productsList)
         productsRecyclerView.adapter = productAdapter
 
+        val itemTouchHelper = ItemTouchHelper(itemTouchHelperCallback)
+        itemTouchHelper.attachToRecyclerView(productsRecyclerView)
     }
 
     private fun configProductSpinner() {
@@ -303,10 +392,20 @@ class MainActivity : AppCompatActivity() {
         productEditText.text.clear()
         productEditText.isEnabled = false
         palletTextView.text = "Pallet: "
+        productTextView.text = "Producto: "
 
         productSpinner.isEnabled = true
         productSpinner.setSelection(0)
 
         palletEditText.requestFocus()
+    }
+
+    private fun logout() {
+        val sharedPreferences: SharedPreferences = getSharedPreferences("user_prefs", MODE_PRIVATE)
+        sharedPreferences.edit() { remove("isLoggedIn") }
+
+        val intent = Intent(this, LoginActivity::class.java)
+        startActivity(intent)
+        finish()
     }
 }
