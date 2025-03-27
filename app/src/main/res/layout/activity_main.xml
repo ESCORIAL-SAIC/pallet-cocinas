@@ -30,59 +30,39 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <com.google.android.material.textfield.TextInputLayout
-                style="@style/Widget.Material3.TextInputLayout.FilledBox.Dense.ExposedDropdownMenu"
-                android:layout_width="120dp"
-                android:layout_height="25dp"
-                app:boxCornerRadiusBottomStart="20dp"
-                app:boxCornerRadiusBottomEnd="20dp"
-                app:boxCornerRadiusTopEnd="20dp"
-                app:boxCornerRadiusTopStart="20dp"
-                app:endIconTint="@color/white"
-                app:boxBackgroundColor="@color/black"
-                app:boxStrokeWidth="0dp"
-                >
-
-                <AutoCompleteTextView
-                    android:id="@+id/autoCompleteTextView"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:paddingTop="2dp"
-                    android:paddingBottom="2dp"
-                    android:inputType="none"
-                    android:textColor="@color/white"
-                    android:textSize="15sp"
-                    android:text="Item"
-                    />
-
-            </com.google.android.material.textfield.TextInputLayout>
-
             <Spinner
                 android:id="@+id/productSpinner"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="2dp"
+                android:layout_width="85dp"
+                android:layout_height="20dp"
+                android:layout_margin="4dp"
                 android:layout_gravity="start"
+                android:background="@drawable/product_item_bk"
+                android:popupBackground="@android:color/black"
                 />
 
             <EditText
                 android:id="@+id/palletEditText"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="35dp"
                 android:ems="10"
-                android:layout_margin="2dp"
+                android:layout_margin="4dp"
+                android:paddingLeft="10dp"
                 android:hint="Numero serie de pallet..."
-                android:inputType="number" />
+                android:inputType="number"
+                android:background="@drawable/rounded_input_text"
+                />
 
             <EditText
                 android:id="@+id/productEditText"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="35dp"
                 android:ems="10"
-                android:layout_margin="2dp"
+                android:layout_margin="4dp"
+                android:paddingLeft="10dp"
                 android:hint="Numero serie de producto..."
-                android:inputType="number" />
+                android:inputType="number"
+                android:background="@drawable/rounded_input_text"
+                />
 
             <TextView
                 android:id="@+id/palletTextView"
