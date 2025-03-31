@@ -48,6 +48,7 @@ class MainActivity : AppCompatActivity() {
     lateinit var productSpinner: Spinner
     lateinit var submitButton: Button
     lateinit var progressBar: ProgressBar
+    lateinit var changePalletButton: Button
 
     var productsList: ArrayList<Product> = ArrayList()
 
@@ -143,6 +144,8 @@ class MainActivity : AppCompatActivity() {
         palletEditText.setOnEditorActionListener(createEnterListener("pallet"))
 
         submitButton.setOnClickListener { submit() }
+
+        changePalletButton.setOnClickListener { resetUIState() }
 
         palletEditText.requestFocus()
     }
@@ -363,6 +366,8 @@ class MainActivity : AppCompatActivity() {
 
         val itemTouchHelper = ItemTouchHelper(itemTouchHelperCallback)
         itemTouchHelper.attachToRecyclerView(productsRecyclerView)
+
+        changePalletButton = findViewById(R.id.changePalletButton)
     }
 
     private fun configProductSpinner() {

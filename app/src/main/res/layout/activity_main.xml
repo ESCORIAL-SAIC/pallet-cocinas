@@ -37,14 +37,30 @@
                 android:layout_margin="2dp"
                 android:layout_gravity="center"/>
 
-            <EditText
-                android:id="@+id/palletEditText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:ems="10"
-                android:layout_margin="2dp"
-                android:hint="Numero serie de pallet..."
-                android:inputType="number" />
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_height="match_parent"
+                android:layout_width="match_parent">
+
+                <EditText
+                    android:id="@+id/palletEditText"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:ems="10"
+                    android:layout_margin="2dp"
+                    android:hint="Numero serie de pallet..."
+                    android:inputType="number" />
+
+                <Button
+                    android:id="@+id/changePalletButton"
+                    android:text="Cambiar"
+                    android:layout_gravity="end"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+
+            </LinearLayout>
+
 
             <EditText
                 android:id="@+id/productEditText"
