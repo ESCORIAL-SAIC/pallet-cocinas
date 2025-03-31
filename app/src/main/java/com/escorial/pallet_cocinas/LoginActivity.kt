@@ -11,6 +11,8 @@ import android.widget.Toast
 import androidx.core.content.edit
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
+import android.widget.ProgressBar
+import android.view.View
 
 class LoginActivity : AppCompatActivity() {
 
@@ -19,6 +21,7 @@ class LoginActivity : AppCompatActivity() {
     lateinit var btnLogin: Button
     lateinit var etUsername: EditText
     lateinit var etPassword: EditText
+    lateinit var progressBar: ProgressBar
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,6 +40,7 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun login(username: String, password: String) {
+        progressBar.visibility = View.VISIBLE
         lifecycleScope.launch {
             try {
                 var login = Login(username, password)
@@ -52,6 +56,9 @@ class LoginActivity : AppCompatActivity() {
             catch (e: Exception) {
                 Log.d("API_ERROR", "Error al obtener datos. ${e.message}")
                 Toast.makeText(this@LoginActivity, "Error al obtener datos.", Toast.LENGTH_LONG).show()
+            }
+            finally {
+                progressBar.visibility = View.GONE
             }
         }
     }
@@ -73,5 +80,6 @@ class LoginActivity : AppCompatActivity() {
         btnLogin.setOnClickListener {
             login(etUsername.text.toString(), etPassword.text.toString())
         }
+        progressBar = findViewById<ProgressBar>(R.id.progressBar)
     }
 }
