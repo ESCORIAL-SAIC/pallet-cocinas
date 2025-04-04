@@ -64,15 +64,46 @@
                 android:background="@drawable/rounded_input_text"
                 />
 
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:background="@drawable/pallet_detail_background">
+
+            <TextView
+                android:id="@+id/palletTitleTextView"
+                android:layout_width="80dp"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="Pallet"
+                android:textColor="#ffffff"
+                android:background="@drawable/black_rounded_bg"
+                />
+
+
             <TextView
                 android:id="@+id/palletTextView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
 
             <TextView
+                android:id="@+id/productTitleTextView"
+                android:layout_width="80dp"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="Producto"
+                android:textColor="#ffffff"
+                android:background="@drawable/black_rounded_bg"
+            />
+
+            <TextView
                 android:id="@+id/productTextView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
+
+            </LinearLayout>
 
         </LinearLayout>
 
