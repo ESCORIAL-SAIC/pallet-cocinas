@@ -3,20 +3,21 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:orientation="vertical">
-
-    <com.escorial.pallet_cocinas.TopBar
-        android:id="@+id/topBar"
-        android:layout_width="match_parent"
-        android:layout_height="65dp" />
+    android:orientation="vertical"
+    android:background="@drawable/login_background"
+    android:gravity="center_vertical">
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/inputCardView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="10dp"
-        app:cardCornerRadius="8dp"
-        app:cardElevation="4dp"
+        app:cardCornerRadius="0dp"
+        app:cardElevation="0dp"
+        app:strokeWidth="0dp"
+        app:strokeColor="@android:color/transparent"
+        android:background="@android:color/transparent"
+        android:foreground="?android:attr/selectableItemBackground"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
@@ -25,19 +26,63 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
+            android:background="@color/white"
+            android:divider="@null"
+            android:gravity="center"
             android:padding="16dp">
+
+            <!-- Logo -->
+            <ImageView
+                android:id="@+id/imageView"
+                android:layout_width="match_parent"
+                android:layout_height="120dp"
+                android:layout_marginBottom="50dp"
+                app:srcCompat="@drawable/login_logo" />
+
+            <TextView
+                android:id="@+id/textViewLogin"
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:textSize="25sp"
+                android:textStyle="bold"
+                android:layout_gravity="start"
+                android:textColor="#2B74B7"
+                android:layout_marginTop="30dp"
+                android:text="Inicio de Sesión" />
+
+            <TextView
+                android:id="@+id/textViewUsername"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="20dp"
+                android:textColor="#2B74B7"
+                android:layout_marginTop="30dp"
+                android:text="Usuario" />
 
             <EditText
                 android:id="@+id/etUsername"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:background="@drawable/input_text_login"
+                android:layout_marginTop="10dp"
                 android:hint="Usuario" />
+
+            <TextView
+                android:id="@+id/textViewPassword"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="20dp"
+                android:textColor="#2B74B7"
+                android:layout_marginTop="30dp"
+                android:text="Contraseña" />
 
             <EditText
                 android:id="@+id/etPassword"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="Contraseña"
+                android:background="@drawable/input_text_login"
+                android:layout_marginTop="10dp"
                 android:inputType="textPassword" />
 
         </LinearLayout>
@@ -46,9 +91,17 @@
 
     <Button
         android:id="@+id/btnLogin"
+        android:layout_width="250dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="40dp"
+        android:text="Iniciar Sesión" />
+
+    <ProgressBar
+        android:id="@+id/progressBar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:text="Iniciar Sesión" />
+        android:visibility="gone" />
 
 </LinearLayout>
