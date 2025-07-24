@@ -285,9 +285,9 @@ class MainActivity : AppCompatActivity() {
                 productSpinner.isEnabled = false
             }
             var product = pallet.Products?.firstOrNull()
-            productTextView.text = "Producto: ${product?.productCode} - ${product?.description} (${product?.type})"
+            productTextView.text = "${product?.productCode} - ${product?.description} (${product?.type})"
         }
-        palletTextView.text = "Pallet: ${palletEditText.text}"
+        palletTextView.text = "${palletEditText.text}"
         palletEditText.isEnabled = false
         productEditText.isEnabled = true
         productEditText.requestFocus()
@@ -355,8 +355,9 @@ class MainActivity : AppCompatActivity() {
         productsRecyclerView = findViewById(R.id.productsRecyclerView)
         productsRecyclerView.layoutManager = LinearLayoutManager(this)
 
-        var divider = DividerItemDecoration(this, DividerItemDecoration.VERTICAL)
-        productsRecyclerView.addItemDecoration(divider)
+        //COMENTE ESTO PORQUE LAS LINEAS DIVISORAS SON FEAS :d
+        //var divider = DividerItemDecoration(this, DividerItemDecoration.VERTICAL)
+        //productsRecyclerView.addItemDecoration(divider)
 
         productAdapter = ProductAdapter(productsList)
         productsRecyclerView.adapter = productAdapter
@@ -368,8 +369,8 @@ class MainActivity : AppCompatActivity() {
     private fun configProductSpinner() {
         //val options = listOf("COCINA", "TERMO/CALEFON")
         val options2 = resources.getStringArray(R.array.tipo_producto)
-        //val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, options)
-        val adapter = ArrayAdapter(this, R.layout.product_dropdown_item, options2)
+        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, options2)
+        //val adapter = ArrayAdapter(this, R.layout.product_dropdown_item, options2)
         //adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         adapter.setDropDownViewResource(R.layout.product_dropdown_item)
 
@@ -400,8 +401,8 @@ class MainActivity : AppCompatActivity() {
         palletEditText.isEnabled = true
         productEditText.text.clear()
         productEditText.isEnabled = false
-        palletTextView.text = "Pallet: "
-        productTextView.text = "Producto: "
+        palletTextView.text = ""
+        productTextView.text = ""
 
         productSpinner.isEnabled = true
         productSpinner.setSelection(0)

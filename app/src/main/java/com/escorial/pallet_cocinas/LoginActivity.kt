@@ -71,9 +71,9 @@ class LoginActivity : AppCompatActivity() {
 
     private fun loadControls() {
         sharedPreferences = getSharedPreferences("user_prefs", MODE_PRIVATE)
-        val topBar = findViewById<TopBar>(R.id.topBar)
-        topBar.setUserInfo("", "")
-        topBar.setLogoutButtonVisibility(false)
+        //val topBar = findViewById<TopBar>(R.id.topBar)
+        //topBar.setUserInfo("", "")
+        //topBar.setLogoutButtonVisibility(false)
         btnLogin = findViewById<Button>(R.id.btnLogin)
         etUsername = findViewById<EditText>(R.id.etUsername)
         etPassword = findViewById<EditText>(R.id.etPassword)

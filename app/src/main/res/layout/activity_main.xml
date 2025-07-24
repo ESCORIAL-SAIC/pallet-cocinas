@@ -6,12 +6,13 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".MainActivity">
+    tools:context=".MainActivity"
+    android:background="#F0F0F0">
 
     <com.escorial.pallet_cocinas.TopBar
         android:id="@+id/topBar"
         android:layout_width="match_parent"
-        android:layout_height="65dp" />
+        android:layout_height="100dp" />
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/inputCardView"
@@ -19,7 +20,11 @@
         android:layout_height="wrap_content"
         android:layout_margin="10dp"
         app:cardCornerRadius="8dp"
-        app:cardElevation="4dp"
+        app:cardElevation="0dp"
+        app:strokeWidth="0dp"
+        app:strokeColor="@android:color/transparent"
+        android:background="@android:color/transparent"
+        app:cardBackgroundColor="@android:color/transparent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
@@ -28,7 +33,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:padding="16dp"
+            >
 
             <Spinner
                 android:id="@+id/productSpinner"
@@ -40,6 +46,15 @@
                 android:popupBackground="@android:color/black"
                 />
 
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:layout_marginLeft="10dp"
+                android:layout_marginTop="10dp"
+                android:text="Numero de Pallet"/>
+
             <EditText
                 android:id="@+id/palletEditText"
                 android:layout_width="match_parent"
@@ -47,10 +62,18 @@
                 android:ems="10"
                 android:layout_margin="4dp"
                 android:paddingLeft="10dp"
-                android:hint="Numero serie de pallet..."
+                android:hint=""
                 android:inputType="number"
                 android:background="@drawable/rounded_input_text"
                 />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:layout_marginLeft="10dp"
+                android:text="Numero serie"/>
 
             <EditText
                 android:id="@+id/productEditText"
@@ -59,7 +82,7 @@
                 android:ems="10"
                 android:layout_margin="4dp"
                 android:paddingLeft="10dp"
-                android:hint="Numero serie de producto..."
+                android:hint=""
                 android:inputType="number"
                 android:background="@drawable/rounded_input_text"
                 />
@@ -70,15 +93,18 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:padding="16dp"
-                android:background="@drawable/pallet_detail_background">
+                android:layout_marginTop="40dp"
+                android:background="@drawable/rounded_input_text">
 
             <TextView
                 android:id="@+id/palletTitleTextView"
-                android:layout_width="80dp"
+                android:layout_width="90dp"
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:text="Pallet"
                 android:textColor="#ffffff"
+                android:layout_marginBottom="10dp"
+                android:textSize="16sp"
                 android:background="@drawable/black_rounded_bg"
                 />
 
@@ -86,22 +112,27 @@
             <TextView
                 android:id="@+id/palletTextView"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:textSize="16sp"/>
 
             <TextView
                 android:id="@+id/productTitleTextView"
-                android:layout_width="80dp"
+                android:layout_width="90dp"
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:text="Producto"
                 android:textColor="#ffffff"
+                android:layout_marginBottom="10dp"
+                android:textSize="16sp"
                 android:background="@drawable/black_rounded_bg"
             />
 
             <TextView
                 android:id="@+id/productTextView"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:textSize="16sp"/>
 
             </LinearLayout>
 
@@ -115,7 +146,11 @@
         android:layout_height="0dp"
         android:layout_margin="10dp"
         app:cardCornerRadius="8dp"
-        app:cardElevation="4dp"
+        app:cardElevation="0dp"
+        app:strokeWidth="0dp"
+        app:strokeColor="@android:color/transparent"
+        android:background="@android:color/transparent"
+        app:cardBackgroundColor="@android:color/transparent"
         android:layout_weight="1"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -125,7 +160,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:padding="5dp">
 
             <ProgressBar
                 android:id="@+id/progressBar"
@@ -137,7 +172,8 @@
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/productsRecyclerView"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                />
 
         </LinearLayout>
 
