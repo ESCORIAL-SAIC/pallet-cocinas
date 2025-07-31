@@ -45,7 +45,6 @@
                 android:background="@drawable/product_item_bk"
                 android:popupBackground="@android:color/black"
                 />
-
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -55,17 +54,33 @@
                 android:layout_marginTop="10dp"
                 android:text="Numero de Pallet"/>
 
-          <EditText
-                android:id="@+id/palletEditText"
+
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="35dp"
-                android:ems="10"
-                android:layout_margin="4dp"
-                android:paddingLeft="10dp"
-                android:hint=""
-                android:inputType="number"
-                android:background="@drawable/rounded_input_text"
-                />
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <EditText
+                    android:id="@+id/palletEditText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="35dp"
+                    android:ems="10"
+                    android:layout_margin="4dp"
+                    android:paddingLeft="10dp"
+                    android:hint=""
+                    android:inputType="number"
+                    android:background="@drawable/rounded_input_text"
+                    />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/changePalletButton"
+                    android:layout_margin="4dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="35dp"
+                    android:textColor="@color/white"
+                    android:text="X" />
+
+            </LinearLayout>
+
 
             <TextView
                 android:layout_width="match_parent"
