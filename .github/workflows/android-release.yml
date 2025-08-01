@@ -26,6 +26,9 @@ jobs:
       - name: Build APK
         run: ./gradlew assembleRelease
 
+      - name: List generated APKs
+        run: ls -R app/build/outputs/apk/
+
       - name: Rename APK
         run: |
           mkdir -p output
