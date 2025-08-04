@@ -7,23 +7,29 @@ on:
 
 jobs:
   build:
+    name: Build Signed APK and Release
     runs-on: ubuntu-latest
 
+    env:
+      ANDROID_HOME: /usr/local/lib/android/sdk
+
     steps:
-      - name: Checkout code
+      - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Set up JDK
+      - name: Set up Java
         uses: actions/setup-java@v3
         with:
-          distribution: 'temurin'
+          distribution: temurin
           java-version: 17
 
-      - name: Decode keystore
-        run: |
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > my-release-key.keystore
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
 
-      - name: Grant execute permission
+      - name: Decode keystore from base64
+        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > my-release-key.keystore
+
+      - name: Grant execute permission to gradlew
         run: chmod +x ./gradlew
 
       - name: Build unsigned APK
@@ -38,20 +44,11 @@ jobs:
             app/build/outputs/apk/release/app-release-unsigned.apk \
             "${{ secrets.KEY_ALIAS }}"
 
-      - name: Install Android SDK Build Tools
-        run: |
-          yes | sdkmanager --licenses
-          sdkmanager "build-tools;34.0.0"
-        env:
-          ANDROID_HOME: ${{ env.ANDROID_HOME }}
-
       - name: Align APK
         run: |
           $ANDROID_HOME/build-tools/34.0.0/zipalign -v 4 \
             app/build/outputs/apk/release/app-release-unsigned.apk \
             app-release.apk
-        env:
-          ANDROID_HOME: ${{ env.ANDROID_HOME }}
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
