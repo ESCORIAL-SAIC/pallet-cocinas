@@ -1,67 +1,22 @@
+<!-- product_item.xml -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="80dp"
+    android:layout_height="wrap_content"
     android:padding="16dp"
-    android:orientation="horizontal"
-    android:background="@drawable/rounded_input_text"
-    android:layout_margin="8dp"
-    android:gravity="center_vertical">
+    android:orientation="vertical">
 
-    <!-- Columna izquierda: Serie -->
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:layout_marginRight="20dp"
-        android:orientation="vertical"
-        android:gravity="center_vertical">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:text="SERIE" />
-
-        <TextView
-            android:id="@+id/tvProductSerial"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="16sp"
-            android:textStyle="bold" />
-
-    </LinearLayout>
-
-    <!-- Columna centro: Código -->
-    <LinearLayout
-        android:layout_width="0dp"
-        android:layout_weight="1"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:gravity="center_vertical">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:text="CÓDIGO" />
-
-        <TextView
-            android:id="@+id/tvProductCode"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="16sp"
-            android:textStyle="bold" />
-
-    </LinearLayout>
-
-    <!-- Texto tipo a la derecha -->
     <TextView
-        android:id="@+id/productTypeTextView"
-        android:layout_width="100dp"
-        android:layout_height="25dp"
-        android:gravity="center"
-        android:textColor="#ffffff"
-        android:background="@drawable/black_rounded_bg"
-        />
+        android:id="@+id/tvProductSerial"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/tvProductCode"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+
 </LinearLayout>

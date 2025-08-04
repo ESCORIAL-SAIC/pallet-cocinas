@@ -9,6 +9,5 @@ data class Product(
     val description: String,
     val type: String,
     val maxCantByPallet: Int,
-    var isAvailable: Boolean,
-    var deleted: Boolean
+    var isAvailable: Boolean
 )
