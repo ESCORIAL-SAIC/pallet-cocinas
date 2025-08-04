@@ -44,11 +44,15 @@ jobs:
             app/build/outputs/apk/release/app-release-unsigned.apk \
             "${{ secrets.KEY_ALIAS }}"
 
-      - name: Align APK
+      - name: Align APK (zipalign)
         run: |
           $ANDROID_HOME/build-tools/34.0.0/zipalign -v 4 \
             app/build/outputs/apk/release/app-release-unsigned.apk \
             app-release.apk
+
+      - name: Verify APK signature
+        run: |
+          jarsigner -verify -verbose -certs app-release.apk
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
