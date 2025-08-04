@@ -38,9 +38,20 @@ jobs:
             app/build/outputs/apk/release/app-release-unsigned.apk \
             "${{ secrets.KEY_ALIAS }}"
 
+      - name: Install Android SDK Build Tools
+        run: |
+          yes | sdkmanager --licenses
+          sdkmanager "build-tools;34.0.0"
+        env:
+          ANDROID_HOME: ${{ env.ANDROID_HOME }}
+
       - name: Align APK
         run: |
-          zipalign -v 4 app/build/outputs/apk/release/app-release-unsigned.apk app-release.apk
+          $ANDROID_HOME/build-tools/34.0.0/zipalign -v 4 \
+            app/build/outputs/apk/release/app-release-unsigned.apk \
+            app-release.apk
+        env:
+          ANDROID_HOME: ${{ env.ANDROID_HOME }}
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
