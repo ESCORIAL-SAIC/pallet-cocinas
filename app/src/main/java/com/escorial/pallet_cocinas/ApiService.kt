@@ -1,5 +1,5 @@
-import com.escorial.pallet_cocinas.Pallet
-import com.escorial.pallet_cocinas.Product
+package com.escorial.pallet_cocinas
+
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
@@ -24,4 +24,7 @@ interface ApiService {
 
     @POST("api/pallets/asociar-productos")
     suspend fun postPalletProducts(@Body pallet: Pallet): Response<Unit>
+
+    @POST("api/login")
+    suspend fun postLogin(@Body login: Login): Response<loginResponse>
 }
