@@ -18,6 +18,7 @@ import android.widget.Button
 import android.widget.ProgressBar
 import android.widget.Spinner
 import android.widget.Toast
+import androidx.appcompat.widget.AppCompatImageButton
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -48,7 +49,7 @@ class MainActivity : AppCompatActivity() {
     lateinit var productSpinner: Spinner
     lateinit var submitButton: Button
     lateinit var progressBar: ProgressBar
-    lateinit var changePalletButton: Button
+    lateinit var changePalletButton: AppCompatImageButton
 
     var productsList: ArrayList<Product> = ArrayList()
 
