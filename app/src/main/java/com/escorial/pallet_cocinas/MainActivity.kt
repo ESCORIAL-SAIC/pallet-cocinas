@@ -31,7 +31,7 @@ import com.google.android.material.snackbar.Snackbar
 
 class MainActivity : AppCompatActivity() {
 
-    lateinit var sharedPreferences: SharedPreferences
+    lateinit var prefs: SharedPreferences
 
     private var isProductRequestInProgress = false
     private var isPalletRequestInProgress = false
@@ -130,8 +130,8 @@ class MainActivity : AppCompatActivity() {
 
         val topBar = findViewById<TopBar>(R.id.topBar)
 
-        val username = sharedPreferences.getString("username", "null")
-        val fullName = sharedPreferences.getString("fullName", "null")
+        val username = prefs.getString("username", "null")
+        val fullName = prefs.getString("fullName", "null")
 
         topBar.setUserInfo(username, fullName)
         topBar.setLogoutButtonVisibility(true)
@@ -308,7 +308,7 @@ class MainActivity : AppCompatActivity() {
             fecha_alta = "",
             codigo = palletEditText.text.toString(),
             Products = productsList,
-            Usuario = sharedPreferences.getString("username", "")!!
+            Usuario = prefs.getString("username", "")!!
         )
         lifecycleScope.launch {
             try {
@@ -342,7 +342,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun loadControls() {
         Log.d("LoadControls", "Loading controls")
-        sharedPreferences = getSharedPreferences("user_prefs", MODE_PRIVATE)
+        prefs = getSharedPreferences("user_prefs", MODE_PRIVATE)
 
         progressBar = findViewById(R.id.progressBar)
         palletEditText = findViewById(R.id.palletEditText)
@@ -374,7 +374,7 @@ class MainActivity : AppCompatActivity() {
     private fun configProductSpinner() {
         val options2 = resources.getStringArray(R.array.tipo_producto)
         val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, options2)
-        val position = sharedPreferences.getString("selectedProductIndex", 0.toString())!!.toInt()
+        val position = prefs.getString("selectedProductIndex", 0.toString())!!.toInt()
         productSpinner.setSelection(position)
         adapter.setDropDownViewResource(R.layout.product_dropdown_item)
 
@@ -384,8 +384,8 @@ class MainActivity : AppCompatActivity() {
                 val selectedOption = parent.getItemAtPosition(position).toString()
                 Toast.makeText(this@MainActivity, "Seleccionaste: $selectedOption", Toast.LENGTH_SHORT).show()
                 selectedProductType = selectedOption
-                sharedPreferences.edit { putString("selectedProductIndex", position.toString()) }
-                productSpinner.setSelection(sharedPreferences.getString("selectedProductIndex", 0.toString())!!.toInt())
+                prefs.edit { putString("selectedProductIndex", position.toString()) }
+                productSpinner.setSelection(prefs.getString("selectedProductIndex", 0.toString())!!.toInt())
             }
 
             override fun onNothingSelected(parent: AdapterView<*>) {
@@ -406,7 +406,7 @@ class MainActivity : AppCompatActivity() {
         productTextView.text = ""
 
         productSpinner.isEnabled = true
-        productSpinner.setSelection(sharedPreferences.getString("selectedProductIndex", 0.toString())!!.toInt())
+        productSpinner.setSelection(prefs.getString("selectedProductIndex", 0.toString())!!.toInt())
 
         palletEditText.requestFocus()
     }
