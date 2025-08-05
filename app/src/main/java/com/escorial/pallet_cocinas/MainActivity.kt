@@ -374,6 +374,8 @@ class MainActivity : AppCompatActivity() {
     private fun configProductSpinner() {
         val options2 = resources.getStringArray(R.array.tipo_producto)
         val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, options2)
+        val position = sharedPreferences.getString("selectedProductIndex", 0.toString())!!.toInt()
+        productSpinner.setSelection(position)
         adapter.setDropDownViewResource(R.layout.product_dropdown_item)
 
         productSpinner.adapter = adapter
@@ -382,6 +384,8 @@ class MainActivity : AppCompatActivity() {
                 val selectedOption = parent.getItemAtPosition(position).toString()
                 Toast.makeText(this@MainActivity, "Seleccionaste: $selectedOption", Toast.LENGTH_SHORT).show()
                 selectedProductType = selectedOption
+                sharedPreferences.edit { putString("selectedProductIndex", position.toString()) }
+                productSpinner.setSelection(sharedPreferences.getString("selectedProductIndex", 0.toString())!!.toInt())
             }
 
             override fun onNothingSelected(parent: AdapterView<*>) {
@@ -402,7 +406,7 @@ class MainActivity : AppCompatActivity() {
         productTextView.text = ""
 
         productSpinner.isEnabled = true
-        productSpinner.setSelection(0)
+        productSpinner.setSelection(sharedPreferences.getString("selectedProductIndex", 0.toString())!!.toInt())
 
         palletEditText.requestFocus()
     }
