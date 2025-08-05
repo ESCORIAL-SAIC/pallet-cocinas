@@ -29,6 +29,7 @@ import java.io.IOException
 import androidx.core.content.edit
 import androidx.recyclerview.widget.ItemTouchHelper
 import com.google.android.material.snackbar.Snackbar
+import com.google.gson.Gson
 
 class MainActivity : AppCompatActivity() {
 
@@ -128,6 +129,8 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         loadControls()
+
+        restoreUIState()
 
         val topBar = findViewById<TopBar>(R.id.topBar)
 
@@ -409,7 +412,46 @@ class MainActivity : AppCompatActivity() {
         productSpinner.isEnabled = true
         productSpinner.setSelection(prefs.getString("selectedProductIndex", 0.toString())!!.toInt())
 
+        prefs.edit {
+            remove("palletText")
+            remove("productText")
+            remove("palletTextViewText")
+            remove("productTextViewText")
+            remove("productsList")
+        }
         palletEditText.requestFocus()
+    }
+    override fun onPause() {
+        super.onPause()
+        prefs.edit {
+            putString("palletText", palletEditText.text.toString())
+            putString("productText", productEditText.text.toString())
+            putString("palletTextViewText", palletTextView.text.toString())
+            putString("productTextViewText", productTextView.text.toString())
+            putBoolean("palletEditTextEnabled", palletEditText.isEnabled)
+            putBoolean("productEditTextEnabled", productEditText.isEnabled)
+            putBoolean("productSpinnerEnabled", productSpinner.isEnabled)
+            putString("productsList", Gson().toJson(productsList))
+        }
+    }
+    fun restoreUIState() {
+        palletEditText.setText(prefs.getString("palletText", ""))
+        productEditText.setText(prefs.getString("productText", ""))
+        palletTextView.text = prefs.getString("palletTextViewText", "")
+        productTextView.text = prefs.getString("productTextViewText", "")
+
+        palletEditText.isEnabled = prefs.getBoolean("palletEditTextEnabled", true)
+        productEditText.isEnabled = prefs.getBoolean("productEditTextEnabled", false)
+        productSpinner.isEnabled = prefs.getBoolean("productSpinnerEnabled", true)
+
+        val jsonList = prefs.getString("productsList", null)
+        if (!jsonList.isNullOrEmpty()) {
+            val type = object : com.google.gson.reflect.TypeToken<ArrayList<Product>>() {}.type
+            val restoredList: ArrayList<Product> = Gson().fromJson(jsonList, type)
+            productsList.clear()
+            productsList.addAll(restoredList)
+            productAdapter.notifyDataSetChanged()
+        }
     }
 
     private fun logout() {
