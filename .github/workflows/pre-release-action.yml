@@ -38,8 +38,8 @@ jobs:
       - name: Align APK (zipalign)
         run: |
           $ANDROID_HOME/build-tools/34.0.0/zipalign -v 4 \
-            app/build/outputs/apk/release/app-release-unsigned.apk \
-            app-release-aligned.apk
+            app/build/outputs/apk/release/app-pre-release-unsigned.apk \
+            app-pre-release-aligned.apk
 
       - name: Sign APK with apksigner
         run: |
@@ -48,12 +48,12 @@ jobs:
             --ks-key-alias "${{ secrets.KEY_ALIAS }}" \
             --ks-pass pass:"${{ secrets.KEYSTORE_PASSWORD }}" \
             --key-pass pass:"${{ secrets.KEY_PASSWORD }}" \
-            --out app-release.apk \
-            app-release-aligned.apk
+            --out app-pre-release.apk \
+            app-pre-release-aligned.apk
 
       - name: Verify APK signature
         run: |
-          $ANDROID_HOME/build-tools/34.0.0/apksigner verify --verbose app-release.apk
+          $ANDROID_HOME/build-tools/34.0.0/apksigner verify --verbose app-pre-release.apk
 
       - name: Generate version tag
         id: versioning
@@ -82,7 +82,7 @@ jobs:
           tag_name: ${{ steps.versioning.outputs.version }}
           name: Dev Prerelease ${{ steps.versioning.outputs.version }}
           body: ${{ steps.changelog.outputs.changelog }}
-          files: app-release.apk
+          files: app-pre-release.apk
           prerelease: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
