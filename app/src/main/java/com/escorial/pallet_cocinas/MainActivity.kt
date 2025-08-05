@@ -372,17 +372,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun configProductSpinner() {
-        //val options = listOf("COCINA", "TERMO/CALEFON")
         val options2 = resources.getStringArray(R.array.tipo_producto)
         val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, options2)
-        //val adapter = ArrayAdapter(this, R.layout.product_dropdown_item, options2)
-        //adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         adapter.setDropDownViewResource(R.layout.product_dropdown_item)
-
-        //Posibles modificaciones para reemplazar a Spinner
-        //val adapter2 = ArrayAdapter(this, R.layout.product_dropdown_item, options2)
-        //adapter2.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-
 
         productSpinner.adapter = adapter
         productSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
