@@ -38,13 +38,14 @@
 
             <Spinner
                 android:id="@+id/productSpinner"
-                android:layout_width="85dp"
-                android:layout_height="20dp"
+                android:layout_width="175dp"
+                android:layout_height="25dp"
                 android:layout_margin="4dp"
                 android:layout_gravity="start"
                 android:background="@drawable/product_item_bk"
                 android:popupBackground="@android:color/black"
                 />
+
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -204,3 +205,4 @@
 
 
 </LinearLayout>
+
