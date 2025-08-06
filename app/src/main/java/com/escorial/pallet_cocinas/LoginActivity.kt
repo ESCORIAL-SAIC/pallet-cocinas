@@ -23,6 +23,8 @@ class LoginActivity : AppCompatActivity() {
     lateinit var etPassword: EditText
     lateinit var progressBar: ProgressBar
 
+    val api get() = ApiClient.getApiService(this)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -44,7 +46,7 @@ class LoginActivity : AppCompatActivity() {
         lifecycleScope.launch {
             try {
                 var login = Login(username, password)
-                var response = ApiClient.apiService.postLogin(login)
+                var response = api.postLogin(login)
                 if (response.isSuccessful) {
                     var login = response.body()
                     sharedPreferences.edit { putString("username", login?.usuario_sistema) }
@@ -81,5 +83,12 @@ class LoginActivity : AppCompatActivity() {
             login(etUsername.text.toString(), etPassword.text.toString())
         }
         progressBar = findViewById<ProgressBar>(R.id.progressBar)
+
+        //config button
+        val configButton = findViewById<Button>(R.id.btnConfiguracion)
+        configButton.setOnClickListener {
+            val intent = Intent(this, ConfigActivity::class.java)
+            startActivity(intent)
+        }
     }
 }

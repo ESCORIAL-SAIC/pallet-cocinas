@@ -98,6 +98,14 @@
         android:layout_marginTop="10dp"
         android:text="Iniciar Sesión" />
 
+    <Button
+        android:id="@+id/btnConfiguracion"
+        android:layout_width="50dp"
+        android:layout_height="wrap_content"
+        android:text="*"
+        android:backgroundTint="@color/black"
+        android:layout_marginTop="16dp"/>
+
     <ProgressBar
         android:id="@+id/progressBar"
         android:layout_width="wrap_content"

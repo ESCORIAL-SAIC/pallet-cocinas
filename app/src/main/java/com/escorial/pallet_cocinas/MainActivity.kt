@@ -51,6 +51,8 @@ class MainActivity : AppCompatActivity() {
     lateinit var progressBar: ProgressBar
     lateinit var changePalletButton: AppCompatImageButton
 
+    val api get() = ApiClient.getApiService(this)
+
     var productsList: ArrayList<Product> = ArrayList()
 
     val itemTouchHelperCallback = object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
@@ -182,9 +184,9 @@ class MainActivity : AppCompatActivity() {
                     throw Exception("Campo de producto vacío")
                 }
                 var product = if (selectedProductType == "COCINA") {
-                    ApiClient.apiService.getProduct(productSerial.toInt(), "COCINA")
+                    api.getProduct(productSerial.toInt(), "COCINA")
                 } else if (selectedProductType == "TERMO/CALEFON") {
-                    ApiClient.apiService.getProduct(productSerial.toInt(), "TERMOTANQUE")
+                    api.getProduct(productSerial.toInt(), "TERMOTANQUE")
                 } else {
                     throw Exception("Debe seleccionar un tipo de producto para continuar")
                 }
@@ -252,8 +254,8 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch {
             try {
                 var palletCode = palletEditText.text.toString()
-                var pallet = ApiClient.apiService.getPallet(palletCode)
-                pallet.Products = ApiClient.apiService.getPalletProducts(palletCode)
+                var pallet = api.getPallet(palletCode)
+                pallet.Products = api.getPalletProducts(palletCode)
                 handlePallet(pallet)
             } catch (h: HttpException) {
                 if(h.code() == 404)
@@ -313,7 +315,7 @@ class MainActivity : AppCompatActivity() {
         )
         lifecycleScope.launch {
             try {
-                var response = ApiClient.apiService.postPalletProducts(palletPost)
+                var response = api.postPalletProducts(palletPost)
                 if (response.isSuccessful) {
                     Toast.makeText(this@MainActivity, "Productos asociados al pallet", Toast.LENGTH_LONG).show()
                     Log.d("Product", "Productos asociados al pallet. $response")
@@ -370,6 +372,7 @@ class MainActivity : AppCompatActivity() {
         itemTouchHelper.attachToRecyclerView(productsRecyclerView)
 
         changePalletButton = findViewById(R.id.changePalletButton)
+
     }
 
     private fun configProductSpinner() {
