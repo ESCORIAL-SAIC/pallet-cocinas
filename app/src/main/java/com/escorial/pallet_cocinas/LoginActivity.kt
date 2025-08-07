@@ -13,6 +13,7 @@ import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import android.widget.ProgressBar
 import android.view.View
+import androidx.appcompat.widget.AppCompatImageButton
 
 class LoginActivity : AppCompatActivity() {
 
@@ -85,7 +86,7 @@ class LoginActivity : AppCompatActivity() {
         progressBar = findViewById<ProgressBar>(R.id.progressBar)
 
         //config button
-        val configButton = findViewById<Button>(R.id.btnConfiguracion)
+        val configButton = findViewById<AppCompatImageButton>(R.id.btnConfiguracion)
         configButton.setOnClickListener {
             val intent = Intent(this, ConfigActivity::class.java)
             startActivity(intent)

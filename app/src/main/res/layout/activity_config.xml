@@ -8,6 +8,14 @@
         android:orientation="vertical"
         android:padding="24dp">
 
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:textSize="24dp"
+            android:layout_marginBottom="20dp"
+            android:text="Configuracion"
+            />
+
         <!-- Admin contraseña -->
         <LinearLayout
             android:id="@+id/layoutPassword"
@@ -15,23 +23,28 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
+            <EditText
+                android:id="@+id/etPassword"
+                android:layout_width="match_parent"
+                android:layout_height="35dp"
+                android:ems="10"
+                android:paddingLeft="10dp"
+                android:layout_marginBottom="5dp"
+                android:background="@drawable/rounded_input_text"
+                android:hint="Contraseña"
+                android:inputType="textPassword" />
+
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:text="Ingresar Contraseña para acceder a la Configuracion"
                 />
 
-            <EditText
-                android:id="@+id/etPassword"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Contraseña"
-                android:inputType="textPassword" />
-
             <Button
                 android:id="@+id/btnValidar"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="20dp"
                 android:text="Acceder"
                 android:layout_marginTop="16dp"/>
         </LinearLayout>
@@ -46,33 +59,41 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:text="Configuracion"
+                android:text="URL de la API"
                 />
 
             <EditText
                 android:id="@+id/etApiUrl"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="35dp"
+                android:ems="10"
+                android:paddingLeft="10dp"
+                android:background="@drawable/rounded_input_text"
                 android:hint="URL de la API"
                 android:inputType="textUri"
-                android:layout_marginTop="32dp" />
+                android:layout_marginTop="5dp" />
 
             <Button
                 android:id="@+id/btnGuardar"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="20dp"
                 android:text="Guardar"
                 android:layout_marginTop="16dp"/>
 
-            <Button
-                android:id="@+id/btnCancelar"
-                android:layout_width="200dp"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:backgroundTint="@color/black"
-                android:text="Cancelar"
-                android:layout_marginTop="16dp"/>
+
         </LinearLayout>
+
+        <androidx.appcompat.widget.AppCompatImageButton
+            android:id="@+id/btnCancelar"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:layout_margin="4dp"
+            android:layout_gravity="center"
+            android:background="@drawable/remove_button_bk"
+            android:src="@drawable/ic_close_pallet_foreground"
+            android:scaleType="center"
+            android:tint="@android:color/white" />
 
     </LinearLayout>
 </ScrollView>

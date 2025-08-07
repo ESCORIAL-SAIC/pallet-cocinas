@@ -96,15 +96,20 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"
         android:text="Iniciar Sesión" />
 
-    <Button
+
+    <androidx.appcompat.widget.AppCompatImageButton
         android:id="@+id/btnConfiguracion"
-        android:layout_width="50dp"
-        android:layout_height="wrap_content"
-        android:text="*"
-        android:backgroundTint="@color/black"
-        android:layout_marginTop="16dp"/>
+        android:layout_width="35dp"
+        android:layout_height="35dp"
+        android:layout_margin="4dp"
+        android:layout_gravity="center"
+        android:background="@drawable/remove_button_bk"
+        android:src="@drawable/ic_config_foreground"
+        android:scaleType="center"
+        android:tint="@android:color/white" />
 
     <ProgressBar
         android:id="@+id/progressBar"

@@ -8,6 +8,7 @@ import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.AppCompatImageButton
 
 class ConfigActivity : AppCompatActivity() {
 
@@ -24,7 +25,7 @@ class ConfigActivity : AppCompatActivity() {
 
         val etApiUrl = findViewById<EditText>(R.id.etApiUrl)
         val btnGuardar = findViewById<Button>(R.id.btnGuardar)
-        val btnCancelar = findViewById<Button>(R.id.btnCancelar)
+        val btnCancelar = findViewById<AppCompatImageButton>(R.id.btnCancelar)
 
         val prefs = getSharedPreferences("configuracion", Context.MODE_PRIVATE)
 
