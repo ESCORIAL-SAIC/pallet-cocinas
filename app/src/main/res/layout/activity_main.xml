@@ -14,6 +14,14 @@
         android:layout_width="match_parent"
         android:layout_height="100dp" />
 
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/inputCardView"
         android:layout_width="match_parent"
@@ -33,7 +41,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp"
+            android:paddingTop="0dp"
+            android:paddingLeft="16dp"
+            android:paddingRight="16dp"
             >
 
             <Spinner
@@ -197,13 +207,18 @@
 
     </com.google.android.material.card.MaterialCardView>
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/submitButton"
-        android:layout_gravity="center_horizontal"
-        android:layout_width="150dp"
-        android:layout_height="wrap_content"
-        android:textColor="@color/white"
-        android:text="Confirmar" />
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/submitButton"
+            android:layout_gravity="center_horizontal"
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:textColor="@color/white"
+            android:text="Confirmar" />
+
+    </LinearLayout>
+    </ScrollView>
+
+
 
 
 </LinearLayout>
