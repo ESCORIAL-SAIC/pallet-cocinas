@@ -27,7 +27,7 @@ jobs:
         uses: android-actions/setup-android@v3
 
       - name: Decode keystore from base64
-        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > my-release-key.keystore
+        run: echo "${{ secrets.ORG_ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > my-release-key.keystore
 
       - name: Grant execute permission to gradlew
         run: chmod +x ./gradlew
@@ -45,9 +45,9 @@ jobs:
         run: |
           $ANDROID_HOME/build-tools/34.0.0/apksigner sign \
             --ks my-release-key.keystore \
-            --ks-key-alias "${{ secrets.KEY_ALIAS }}" \
-            --ks-pass pass:"${{ secrets.KEYSTORE_PASSWORD }}" \
-            --key-pass pass:"${{ secrets.KEY_PASSWORD }}" \
+            --ks-key-alias "${{ secrets.ORG_ANDROID_KEY_ALIAS }}" \
+            --ks-pass pass:"${{ secrets.ORG_ANDROID_KEYSTORE_PASSWORD }}" \
+            --key-pass pass:"${{ secrets.ORG_ANDROID_KEY_PASSWORD }}" \
             --out app-release.apk \
             app-release-aligned.apk
 
