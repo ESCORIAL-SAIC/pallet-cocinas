@@ -45,8 +45,6 @@ class MainActivity : AppCompatActivity() {
     lateinit var productAdapter: ProductAdapter
     lateinit var productEditText: EditText
     lateinit var palletEditText: EditText
-    lateinit var palletTextView: TextView
-    lateinit var productTextView: TextView
     lateinit var productSpinner: Spinner
     lateinit var submitButton: Button
     lateinit var progressBar: ProgressBar
@@ -294,9 +292,8 @@ class MainActivity : AppCompatActivity() {
                 productSpinner.isEnabled = false
             }
             var product = pallet.Products?.firstOrNull()
-            productTextView.text = "${product?.productCode} - ${product?.description} (${product?.type})"
         }
-        palletTextView.text = "${palletEditText.text}"
+
         palletEditText.isEnabled = false
         productEditText.isEnabled = true
         productEditText.requestFocus()
@@ -354,8 +351,6 @@ class MainActivity : AppCompatActivity() {
         palletEditText = findViewById(R.id.palletEditText)
         productEditText = findViewById(R.id.productEditText)
         productEditText.isEnabled = false
-        palletTextView = findViewById(R.id.palletTextView)
-        productTextView = findViewById(R.id.productTextView)
         submitButton = findViewById(R.id.submitButton)
 
         productSpinner = findViewById(R.id.productSpinner)
@@ -409,8 +404,6 @@ class MainActivity : AppCompatActivity() {
         palletEditText.isEnabled = true
         productEditText.text.clear()
         productEditText.isEnabled = false
-        palletTextView.text = ""
-        productTextView.text = ""
 
         productSpinner.isEnabled = true
         productSpinner.setSelection(prefs.getString("selectedProductIndex", 0.toString())!!.toInt())
@@ -418,8 +411,6 @@ class MainActivity : AppCompatActivity() {
         prefs.edit {
             remove("palletText")
             remove("productText")
-            remove("palletTextViewText")
-            remove("productTextViewText")
             remove("productsList")
         }
         palletEditText.requestFocus()
@@ -429,8 +420,6 @@ class MainActivity : AppCompatActivity() {
         prefs.edit {
             putString("palletText", palletEditText.text.toString())
             putString("productText", productEditText.text.toString())
-            putString("palletTextViewText", palletTextView.text.toString())
-            putString("productTextViewText", productTextView.text.toString())
             putBoolean("palletEditTextEnabled", palletEditText.isEnabled)
             putBoolean("productEditTextEnabled", productEditText.isEnabled)
             putBoolean("productSpinnerEnabled", productSpinner.isEnabled)
@@ -440,8 +429,6 @@ class MainActivity : AppCompatActivity() {
     fun restoreUIState() {
         palletEditText.setText(prefs.getString("palletText", ""))
         productEditText.setText(prefs.getString("productText", ""))
-        palletTextView.text = prefs.getString("palletTextViewText", "")
-        productTextView.text = prefs.getString("productTextViewText", "")
 
         palletEditText.isEnabled = prefs.getBoolean("palletEditTextEnabled", true)
         productEditText.isEnabled = prefs.getBoolean("productEditTextEnabled", false)

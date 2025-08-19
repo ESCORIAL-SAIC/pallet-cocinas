@@ -117,55 +117,6 @@
                 android:background="@drawable/rounded_input_text"
                 />
 
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="16dp"
-                android:layout_marginTop="40dp"
-                android:background="@drawable/rounded_input_text">
-
-            <TextView
-                android:id="@+id/palletTitleTextView"
-                android:layout_width="90dp"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:text="Pallet"
-                android:textColor="#ffffff"
-                android:layout_marginBottom="10dp"
-                android:textSize="16sp"
-                android:background="@drawable/black_rounded_bg"
-                />
-
-
-            <TextView
-                android:id="@+id/palletTextView"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="10dp"
-                android:textSize="16sp"/>
-
-            <TextView
-                android:id="@+id/productTitleTextView"
-                android:layout_width="90dp"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:text="Producto"
-                android:textColor="#ffffff"
-                android:layout_marginBottom="10dp"
-                android:textSize="16sp"
-                android:background="@drawable/black_rounded_bg"
-            />
-
-            <TextView
-                android:id="@+id/productTextView"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textSize="16sp"/>
-
-            </LinearLayout>
-
         </LinearLayout>
 
     </com.google.android.material.card.MaterialCardView>
