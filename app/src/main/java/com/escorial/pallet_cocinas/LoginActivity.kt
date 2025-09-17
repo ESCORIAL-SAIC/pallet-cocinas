@@ -2,6 +2,7 @@ package com.escorial.pallet_cocinas
 
 import android.content.Intent
 import android.content.SharedPreferences
+import retrofit2.HttpException
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
@@ -14,6 +15,7 @@ import kotlinx.coroutines.launch
 import android.widget.ProgressBar
 import android.view.View
 import androidx.appcompat.widget.AppCompatImageButton
+import com.escorial.pallet_cocinas.utils.apiMessage
 
 class LoginActivity : AppCompatActivity() {
 
@@ -56,8 +58,12 @@ class LoginActivity : AppCompatActivity() {
                     startMainActivity()
                 }
             }
+            catch (h: HttpException) {
+                Toast.makeText(this@LoginActivity, "Error HTTP\n${h.apiMessage()}", Toast.LENGTH_LONG).show()
+                Log.d("API_ERROR", "Error HTTP. ${h.message}")
+            }
             catch (e: Exception) {
-                Log.d("API_ERROR", "Error al obtener datos. ${e.message}")
+                Log.d("API_ERROR", "Excepcion no controlada.\n${e.message}")
                 Toast.makeText(this@LoginActivity, "Error al obtener datos.", Toast.LENGTH_LONG).show()
             }
             finally {

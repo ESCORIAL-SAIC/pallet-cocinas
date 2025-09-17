@@ -28,6 +28,7 @@ import retrofit2.HttpException
 import java.io.IOException
 import androidx.core.content.edit
 import androidx.recyclerview.widget.ItemTouchHelper
+import com.escorial.pallet_cocinas.utils.apiMessage
 import com.google.android.material.snackbar.Snackbar
 import com.google.gson.Gson
 
@@ -193,10 +194,7 @@ class MainActivity : AppCompatActivity() {
                 }
                 handleProduct(product)
             } catch (h: HttpException) {
-                if(h.code() == 404)
-                    Toast.makeText(this@MainActivity, "No se encontró el número de serie.", Toast.LENGTH_LONG).show()
-                else
-                    Toast.makeText(this@MainActivity, "Error HTTP.", Toast.LENGTH_LONG).show()
+                Toast.makeText(this@MainActivity, "Error HTTP\n${h.apiMessage()}", Toast.LENGTH_LONG).show()
                 Log.d("API_ERROR", "Error HTTP. ${h.message}")
             } catch (i: IOException) {
                 Toast.makeText(this@MainActivity, "Error de conexion.", Toast.LENGTH_LONG).show()
@@ -259,10 +257,7 @@ class MainActivity : AppCompatActivity() {
                 pallet.Products = api.getPalletProducts(palletCode)
                 handlePallet(pallet)
             } catch (h: HttpException) {
-                if(h.code() == 404)
-                    Toast.makeText(this@MainActivity, "No se encontró el número de pallet.", Toast.LENGTH_LONG).show()
-                else
-                    Toast.makeText(this@MainActivity, "Error HTTP.", Toast.LENGTH_LONG).show()
+                Toast.makeText(this@MainActivity, "Error HTTP\n${h.apiMessage()}", Toast.LENGTH_LONG).show()
                 Log.d("API_ERROR", "No se encontró el número de pallet. ${h.message}")
             } catch (i: IOException) {
                 Toast.makeText(this@MainActivity, "Error de conexion.", Toast.LENGTH_LONG).show()
@@ -327,7 +322,7 @@ class MainActivity : AppCompatActivity() {
                     Log.d("Product", "Error al asociar productos al pallet. $response")
                 }
             } catch (h: HttpException) {
-                Toast.makeText(this@MainActivity, "Error HTTP.", Toast.LENGTH_LONG).show()
+                Toast.makeText(this@MainActivity, "Error HTTP\n${h.apiMessage()}", Toast.LENGTH_LONG).show()
                 Log.d("API_ERROR", "Error HTTP. ${h.message}")
             } catch (i: IOException) {
                 Toast.makeText(this@MainActivity, "Error de conexion.", Toast.LENGTH_LONG).show()
