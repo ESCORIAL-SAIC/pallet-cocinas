@@ -73,7 +73,7 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun startMainActivity() {
-        val intent = Intent(this, MainActivity::class.java)
+        val intent = Intent(this, AsociarProductoActivity::class.java)
         startActivity(intent)
         finish()
     }
