@@ -73,6 +73,8 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun startMainActivity() {
+        // TODO: antes de compilar, borrar esta línea
+
         //val intent = Intent(this, AsociarProductoActivity::class.java)
         val intent = Intent(this, PickeoPalletActivity::class.java)
         startActivity(intent)
