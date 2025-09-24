@@ -58,23 +58,67 @@
                 android:popupBackground="@android:color/black"
                 />
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:layout_marginLeft="10dp"
-                android:layout_marginTop="10dp"
-                android:text="Numero de Pallet"/>
-
-
             <LinearLayout
+                android:id="@+id/palletLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal">
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:layout_marginLeft="10dp"
+                    android:layout_marginTop="10dp"
+                    android:text="Numero de Pallet"/>
+
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+                    <EditText
+                        android:id="@+id/palletEditText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="35dp"
+                        android:ems="10"
+                        android:layout_margin="4dp"
+                        android:paddingLeft="10dp"
+                        android:hint=""
+                        android:inputType="number"
+                        android:background="@drawable/rounded_input_text"
+                        />
+
+                    <androidx.appcompat.widget.AppCompatImageButton
+                        android:id="@+id/changePalletButton"
+                        android:layout_width="35dp"
+                        android:layout_height="35dp"
+                        android:layout_margin="4dp"
+                        android:background="@drawable/remove_button_bk"
+                        android:src="@drawable/ic_close_pallet_foreground"
+                        android:scaleType="center"
+                        android:tint="@android:color/white" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+            <LinearLayout
+                android:id="@+id/productLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:layout_marginLeft="10dp"
+                    android:text="Numero serie"/>
+
                 <EditText
-                    android:id="@+id/palletEditText"
-                    android:layout_width="wrap_content"
+                    android:id="@+id/productEditText"
+                    android:layout_width="match_parent"
                     android:layout_height="35dp"
                     android:ems="10"
                     android:layout_margin="4dp"
@@ -83,39 +127,7 @@
                     android:inputType="number"
                     android:background="@drawable/rounded_input_text"
                     />
-
-                <androidx.appcompat.widget.AppCompatImageButton
-                    android:id="@+id/changePalletButton"
-                    android:layout_width="35dp"
-                    android:layout_height="35dp"
-                    android:layout_margin="4dp"
-                    android:background="@drawable/remove_button_bk"
-                    android:src="@drawable/ic_close_pallet_foreground"
-                    android:scaleType="center"
-                    android:tint="@android:color/white" />
-
             </LinearLayout>
-
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:layout_marginLeft="10dp"
-                android:text="Numero serie"/>
-
-            <EditText
-                android:id="@+id/productEditText"
-                android:layout_width="match_parent"
-                android:layout_height="35dp"
-                android:ems="10"
-                android:layout_margin="4dp"
-                android:paddingLeft="10dp"
-                android:hint=""
-                android:inputType="number"
-                android:background="@drawable/rounded_input_text"
-                />
 
         </LinearLayout>
 

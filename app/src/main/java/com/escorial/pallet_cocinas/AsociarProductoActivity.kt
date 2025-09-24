@@ -52,6 +52,8 @@ class AsociarProductoActivity : AppCompatActivity() {
 
     val api get() = ApiClient.getApiService(this)
 
+    private val palletRepository = PalletRepository(api)
+
     var productsList: ArrayList<Product> = ArrayList()
 
     val itemTouchHelperCallback = object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
@@ -246,26 +248,23 @@ class AsociarProductoActivity : AppCompatActivity() {
     }
 
     private fun coroutinePallet() {
-        if (isPalletRequestInProgress)
-            return
+        if (isPalletRequestInProgress) return
+
         progressBar.visibility = View.VISIBLE
+        isPalletRequestInProgress = true
+
         lifecycleScope.launch {
             try {
-                var palletCode = palletEditText.text.toString()
-                var pallet = api.getPallet(palletCode)
-                pallet.Products = api.getPalletProducts(palletCode)
+                val palletCode = palletEditText.text.toString()
+                val pallet = palletRepository.getPalletWithProducts(palletCode)
                 handlePallet(pallet)
             } catch (h: HttpException) {
-                Toast.makeText(this@AsociarProductoActivity, "Error HTTP\n${h.apiMessage()}", Toast.LENGTH_LONG).show()
-                Log.d("API_ERROR", "No se encontró el número de pallet. ${h.message}")
+                Toast.makeText(this@AsociarProductoActivity, "Error HTTP.\n${h.apiMessage()}", Toast.LENGTH_LONG).show()
             } catch (i: IOException) {
-                Toast.makeText(this@AsociarProductoActivity, "Error de conexion.", Toast.LENGTH_LONG).show()
-                Log.d("API_ERROR", "Error de conexion. ${i.message}")
+                Toast.makeText(this@AsociarProductoActivity, "Error de conexion.\n${i.message}", Toast.LENGTH_LONG).show()
             } catch (e: Exception) {
-                Toast.makeText(this@AsociarProductoActivity, "Error al obtener datos.", Toast.LENGTH_LONG).show()
-                Log.d("API_ERROR", "Error al obtener datos. ${e.message}")
-            }
-            finally {
+                Toast.makeText(this@AsociarProductoActivity, "Error al obtener datos.\n${e.message}", Toast.LENGTH_LONG).show()
+            } finally {
                 progressBar.visibility = View.GONE
                 isPalletRequestInProgress = false
             }

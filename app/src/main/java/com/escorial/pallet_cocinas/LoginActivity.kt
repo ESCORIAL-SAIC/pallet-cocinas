@@ -73,7 +73,8 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun startMainActivity() {
-        val intent = Intent(this, AsociarProductoActivity::class.java)
+        //val intent = Intent(this, AsociarProductoActivity::class.java)
+        val intent = Intent(this, PickeoPalletActivity::class.java)
         startActivity(intent)
         finish()
     }
