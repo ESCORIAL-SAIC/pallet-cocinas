@@ -4,4 +4,5 @@
         <item>COCINA</item>
         <item>TERMO/CALEFON</item>
     </string-array>
+    <string name="title_pallet_item">PALLET</string>
 </resources>
