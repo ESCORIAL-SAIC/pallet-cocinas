@@ -129,6 +129,7 @@ class PickeoPalletActivity : AppCompatActivity() {
             return
 
         isPalletRequestInProgress = true
+        progressBar.visibility = View.VISIBLE
 
         lifecycleScope.launch {
             try {
@@ -143,6 +144,10 @@ class PickeoPalletActivity : AppCompatActivity() {
             }
             catch (e: Exception) {
                 Toast.makeText(this@PickeoPalletActivity, "Error.\n${e.message}", Toast.LENGTH_LONG).show()
+            }
+            finally {
+                isPalletRequestInProgress = false
+                progressBar.visibility = View.GONE
             }
         }
     }
