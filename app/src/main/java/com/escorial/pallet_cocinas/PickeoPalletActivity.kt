@@ -1,5 +1,7 @@
 package com.escorial.pallet_cocinas
 
+import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.View
@@ -12,6 +14,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.edit
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
@@ -23,6 +26,7 @@ import retrofit2.HttpException
 import java.io.IOException
 
 class PickeoPalletActivity : AppCompatActivity() {
+    lateinit var prefs: SharedPreferences
 
     var isPalletRequestInProgress = false
     lateinit var transferirButton: Button
@@ -50,6 +54,19 @@ class PickeoPalletActivity : AppCompatActivity() {
     }
 
     private fun loadControls() {
+        prefs = getSharedPreferences("user_prefs", MODE_PRIVATE)
+
+        val topBar = findViewById<TopBar>(R.id.topBar)
+
+        val username = prefs.getString("username", "null")
+        val fullName = prefs.getString("fullName", "null")
+
+        topBar.setUserInfo(username, fullName)
+        topBar.setLogoutButtonVisibility(true)
+        topBar.setOnLogoutClickListener  {
+            logout()
+            Toast.makeText(this@PickeoPalletActivity, "Logout", Toast.LENGTH_SHORT).show()
+        }
         api = ApiClient.getApiService(this)
         palletRepository = PalletRepository(api)
         progressBar = findViewById(R.id.progressBar)
@@ -61,6 +78,15 @@ class PickeoPalletActivity : AppCompatActivity() {
         palletsRecyclerView.layoutManager = LinearLayoutManager(this)
         palletAdapter = PalletAdapter(palletsList)
         palletsRecyclerView.adapter = palletAdapter
+    }
+
+    private fun logout() {
+        val sharedPreferences: SharedPreferences = getSharedPreferences("user_prefs", MODE_PRIVATE)
+        sharedPreferences.edit() { remove("isLoggedIn") }
+
+        val intent = Intent(this, LoginActivity::class.java)
+        startActivity(intent)
+        finish()
     }
 
     private fun createEnterListener(type: String): TextView.OnEditorActionListener {
