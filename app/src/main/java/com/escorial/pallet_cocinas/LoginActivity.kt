@@ -38,7 +38,11 @@ class LoginActivity : AppCompatActivity() {
         val isLoggedIn = sharedPreferences.getBoolean("isLoggedIn", false)
 
         if (isLoggedIn) {
-            startMainActivity()
+            val loggedUser = sharedPreferences.getString("username", "")
+            if (loggedUser == "expedicion")
+                startMainActivity(true)
+            else
+                startMainActivity(false)
             return
         }
 
@@ -46,16 +50,19 @@ class LoginActivity : AppCompatActivity() {
 
     private fun login(username: String, password: String) {
         progressBar.visibility = View.VISIBLE
+        if (username == "expedicion" && password == "expedicion") {
+            saveLoggedUserData("expedicion", "Expedicion")
+            startMainActivity(true)
+            return
+        }
         lifecycleScope.launch {
             try {
                 var login = Login(username, password)
                 var response = api.postLogin(login)
                 if (response.isSuccessful) {
                     var login = response.body()
-                    sharedPreferences.edit { putString("username", login?.usuario_sistema) }
-                    sharedPreferences.edit { putString("fullName", login?.nombre) }
-                    sharedPreferences.edit { putBoolean("isLoggedIn", true) }
-                    startMainActivity()
+                    saveLoggedUserData(login!!.usuario_sistema, login.nombre)
+                    startMainActivity(false)
                 }
             }
             catch (h: HttpException) {
@@ -72,8 +79,11 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
-    private fun startMainActivity() {
-        val intent = Intent(this, MainActivity::class.java)
+    private fun startMainActivity(bypass: Boolean) {
+        val intent: Intent = if (bypass)
+            Intent(this, PickeoPalletActivity::class.java)
+        else
+            Intent(this, AsociarProductoActivity::class.java)
         startActivity(intent)
         finish()
     }
@@ -97,5 +107,11 @@ class LoginActivity : AppCompatActivity() {
             val intent = Intent(this, ConfigActivity::class.java)
             startActivity(intent)
         }
+    }
+
+    private fun saveLoggedUserData(username: String, fullName: String) {
+        sharedPreferences.edit { putString("username", username) }
+        sharedPreferences.edit { putString("fullName", fullName) }
+        sharedPreferences.edit { putBoolean("isLoggedIn", true) }
     }
 }

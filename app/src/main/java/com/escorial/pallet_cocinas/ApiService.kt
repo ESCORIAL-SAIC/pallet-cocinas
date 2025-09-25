@@ -27,4 +27,7 @@ interface ApiService {
 
     @POST("api/login")
     suspend fun postLogin(@Body login: Login): Response<loginResponse>
+
+    @POST("api/pallets/transferirExpedicion")
+    suspend fun postPalletTransfer(@Body pallets: ArrayList<Pallet>): Response<Unit>
 }
