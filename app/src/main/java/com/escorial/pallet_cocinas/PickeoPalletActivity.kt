@@ -108,13 +108,15 @@ class PickeoPalletActivity : AppCompatActivity() {
         if (pallet == null) return
 
         if (palletsList.contains(pallet)) {
-            Toast.makeText(this@PickeoPalletActivity, "Pallet ya pickeado.", Toast.LENGTH_LONG)
+            Toast.makeText(this@PickeoPalletActivity, "Pallet ya pickeado.", Toast.LENGTH_LONG).show()
             return
         }
 
         palletsList.add(pallet)
 
-        palletEditText.clearFocus()
+        palletAdapter.notifyDataSetChanged()
+
+        palletEditText.text.clear()
         palletEditText.requestFocus()
 
         /*if (pallet.Products != null && pallet.Products!!.isNotEmpty()) {
