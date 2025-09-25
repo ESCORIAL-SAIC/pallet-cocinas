@@ -54,6 +54,7 @@ class PickeoPalletActivity : AppCompatActivity() {
         palletRepository = PalletRepository(api)
         progressBar = findViewById(R.id.progressBar)
         transferirButton = findViewById(R.id.btnTransferir)
+        transferirButton.setOnClickListener { transferir() }
         palletsRecyclerView = findViewById(R.id.rvPallets)
         palletEditText = findViewById(R.id.etPallet)
         palletEditText.setOnEditorActionListener(createEnterListener("pallet"))
@@ -118,24 +119,31 @@ class PickeoPalletActivity : AppCompatActivity() {
 
         palletEditText.text.clear()
         palletEditText.requestFocus()
+    }
 
-        /*if (pallet.Products != null && pallet.Products!!.isNotEmpty()) {
-            for (product in pallet.Products)
-                productsList.add(product)
-            productAdapter.notifyDataSetChanged()
-            if (pallet.Products?.firstOrNull()?.type == "COCINA") {
-                productSpinner.setSelection(0)
-                productSpinner.isEnabled = false
+    private fun transferir() {
+        if (isPalletRequestInProgress)
+            return
+
+        if (palletsList.isEmpty())
+            return
+
+        isPalletRequestInProgress = true
+
+        lifecycleScope.launch {
+            try {
+                var response = api.postPalletTransfer(palletsList)
+                if (response.isSuccessful) {
+                    Toast.makeText(this@PickeoPalletActivity, "Transferencia exitosa.", Toast.LENGTH_LONG).show()
+                    palletsList.clear()
+                    palletAdapter.notifyDataSetChanged()
+                    palletEditText.text.clear()
+                    palletEditText.requestFocus()
+                }
             }
-            else if (pallet.Products?.firstOrNull()?.type == "TERMOTANQUE") {
-                productSpinner.setSelection(1)
-                productSpinner.isEnabled = false
+            catch (e: Exception) {
+                Toast.makeText(this@PickeoPalletActivity, "Error.\n${e.message}", Toast.LENGTH_LONG).show()
             }
-            var product = pallet.Products?.firstOrNull()
         }
-
-        palletEditText.isEnabled = false
-        productEditText.isEnabled = true
-        productEditText.requestFocus() */
     }
 }
