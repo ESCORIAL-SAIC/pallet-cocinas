@@ -15,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.escorial.pallet_cocinas.utils.apiMessage
 import kotlinx.coroutines.launch
@@ -28,10 +29,10 @@ class PickeoPalletActivity : AppCompatActivity() {
     lateinit var palletEditText: EditText
     lateinit var palletsRecyclerView: RecyclerView
     lateinit var progressBar: ProgressBar
-    val api get() = ApiClient.getApiService(this)
+    lateinit var api: ApiService
     var palletsList: ArrayList<Pallet> = ArrayList()
-    private val palletRepository = PalletRepository(api)
-    lateinit var productAdapter: ProductAdapter
+    lateinit var palletRepository: PalletRepository
+    lateinit var palletAdapter: PalletAdapter
 
 
 
@@ -49,10 +50,16 @@ class PickeoPalletActivity : AppCompatActivity() {
     }
 
     private fun loadControls() {
+        api = ApiClient.getApiService(this)
+        palletRepository = PalletRepository(api)
+        progressBar = findViewById(R.id.progressBar)
         transferirButton = findViewById(R.id.btnTransferir)
         palletsRecyclerView = findViewById(R.id.rvPallets)
         palletEditText = findViewById(R.id.etPallet)
         palletEditText.setOnEditorActionListener(createEnterListener("pallet"))
+        palletsRecyclerView.layoutManager = LinearLayoutManager(this)
+        palletAdapter = PalletAdapter(palletsList)
+        palletsRecyclerView.adapter = palletAdapter
     }
 
     private fun createEnterListener(type: String): TextView.OnEditorActionListener {
@@ -100,8 +107,14 @@ class PickeoPalletActivity : AppCompatActivity() {
 
         if (pallet == null) return
 
+        if (palletsList.contains(pallet)) {
+            Toast.makeText(this@PickeoPalletActivity, "Pallet ya pickeado.", Toast.LENGTH_LONG)
+            return
+        }
+
         palletsList.add(pallet)
 
+        palletEditText.clearFocus()
         palletEditText.requestFocus()
 
         /*if (pallet.Products != null && pallet.Products!!.isNotEmpty()) {
