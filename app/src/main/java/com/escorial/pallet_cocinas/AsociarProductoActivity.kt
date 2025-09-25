@@ -50,9 +50,9 @@ class AsociarProductoActivity : AppCompatActivity() {
     lateinit var progressBar: ProgressBar
     lateinit var changePalletButton: AppCompatImageButton
 
-    val api get() = ApiClient.getApiService(this)
+    lateinit var api: ApiService
 
-    private val palletRepository = PalletRepository(api)
+    lateinit var palletRepository: PalletRepository
 
     var productsList: ArrayList<Product> = ArrayList()
 
@@ -339,6 +339,9 @@ class AsociarProductoActivity : AppCompatActivity() {
     private fun loadControls() {
         Log.d("LoadControls", "Loading controls")
         prefs = getSharedPreferences("user_prefs", MODE_PRIVATE)
+
+        api = ApiClient.getApiService(this)
+        palletRepository = PalletRepository(api)
 
         progressBar = findViewById(R.id.progressBar)
         palletEditText = findViewById(R.id.palletEditText)
