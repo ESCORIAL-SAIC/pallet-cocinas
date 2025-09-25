@@ -40,7 +40,7 @@ class LoginActivity : AppCompatActivity() {
         if (isLoggedIn) {
             val loggedUser = sharedPreferences.getString("username", "")
             if (loggedUser == "expedicion")
-                startMainActivity(false)
+                startMainActivity(true)
             else
                 startMainActivity(false)
             return
