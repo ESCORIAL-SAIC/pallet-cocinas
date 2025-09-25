@@ -7,22 +7,22 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
 class PalletAdapter(private val pallets: List<Pallet>) :
-    RecyclerView.Adapter<PalletAdapter.ProductViewHolder>() {
+    RecyclerView.Adapter<PalletAdapter.PalletViewHolder>() {
 
 
 
-    class ProductViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+    class PalletViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val tvPalletCode = view.findViewById<TextView>(R.id.tvPalletCode)
         val itemLayout: View = view
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ProductViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PalletViewHolder {
         val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.product_item, parent, false)
-        return ProductViewHolder(view)
+            .inflate(R.layout.pallet_item, parent, false)
+        return PalletViewHolder(view)
     }
 
-    override fun onBindViewHolder(holder: ProductViewHolder, position: Int) {
+    override fun onBindViewHolder(holder: PalletViewHolder, position: Int) {
         val pallet = pallets[position]
         holder.tvPalletCode.text = "${pallet.codigo}"
     }
