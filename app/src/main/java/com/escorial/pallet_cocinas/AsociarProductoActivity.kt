@@ -79,12 +79,14 @@ class AsociarProductoActivity : AppCompatActivity() {
             .setTitle("Confirmar restauración")
             .setMessage("Seguro que quieres volver a asociar este elemento?")
             .setPositiveButton("Sí") { _, _ ->
-                restoreItem(item)
-                Snackbar.make(productsRecyclerView, "Ítem restaurado", Snackbar.LENGTH_LONG)
-                    .setAction("Deshacer") {
-                        deleteItem(item)
-                    }
-                    .show()
+                val res = restoreItem(item)
+                if (res) {
+                    Snackbar.make(productsRecyclerView, "Ítem restaurado", Snackbar.LENGTH_LONG)
+                        .setAction("Deshacer") {
+                            deleteItem(item)
+                        }
+                        .show()
+                }
             }
             .setNegativeButton("Cancelar") { _, _ ->
                 val position = productsList.indexOf(item)
@@ -119,11 +121,16 @@ class AsociarProductoActivity : AppCompatActivity() {
         productsList[position].deleted = true
         productAdapter.notifyItemChanged(position)
     }
-
-    private fun restoreItem(item: Product) {
+    private fun restoreItem(item: Product): Boolean {
         val position = productsList.indexOf(item)
+        if (getNotDeletedProducts().count() >= item.maxCantByPallet) {
+            Toast.makeText(this@AsociarProductoActivity, "Cantidad máxima de productos por pallet alcanzada", Toast.LENGTH_LONG).show()
+            productAdapter.notifyItemChanged(position)
+            return false
+        }
         productsList[position].deleted = false
         productAdapter.notifyItemChanged(position)
+        return true
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -219,7 +226,7 @@ class AsociarProductoActivity : AppCompatActivity() {
             productEditText.requestFocus()
             return
         }
-        if (productsList.count() == product.maxCantByPallet) {
+        if (getNotDeletedProducts().count() == product.maxCantByPallet) {
             Log.d("Product", "Cantidad máxima de productos por pallet alcanzada")
             Toast.makeText(this@AsociarProductoActivity, "Cantidad máxima de productos por pallet alcanzada", Toast.LENGTH_LONG).show()
             productEditText.text.clear()
@@ -297,6 +304,10 @@ class AsociarProductoActivity : AppCompatActivity() {
             return
         if (productsList.isEmpty())
             return
+        if (getNotDeletedProducts().count() != productsList.first().maxCantByPallet) {
+            Toast.makeText(this@AsociarProductoActivity, "Debe asociar todos los productos", Toast.LENGTH_LONG).show()
+            return
+        }
         progressBar.visibility = View.VISIBLE
         var palletPost = Pallet(
             id = java.util.UUID.randomUUID(),
@@ -447,5 +458,9 @@ class AsociarProductoActivity : AppCompatActivity() {
         val intent = Intent(this, LoginActivity::class.java)
         startActivity(intent)
         finish()
+    }
+
+    private fun getNotDeletedProducts(): ArrayList<Product> {
+        return ArrayList(productsList.filter { !it.deleted })
     }
 }
