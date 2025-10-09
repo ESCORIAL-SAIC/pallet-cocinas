@@ -139,6 +139,11 @@ class PickeoPalletActivity : AppCompatActivity() {
             return
         }
 
+        if (pallet.transferir) {
+            Toast.makeText(this@PickeoPalletActivity, "Pallet ya transferido.", Toast.LENGTH_LONG).show()
+            return
+        }
+
         palletsList.add(pallet)
 
         palletAdapter.notifyDataSetChanged()
