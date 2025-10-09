@@ -7,6 +7,7 @@ data class Pallet(
     val codigo: String,
     val descripcion: String,
     val fecha_alta: String,
+    val transferir: Boolean,
     var Products: ArrayList<Product>?,
     var Usuario: String
 )
