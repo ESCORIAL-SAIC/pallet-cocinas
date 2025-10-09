@@ -314,6 +314,7 @@ class AsociarProductoActivity : AppCompatActivity() {
             descripcion = "",
             fecha_alta = "",
             codigo = palletEditText.text.toString(),
+            transferir = false,
             Products = productsList,
             Usuario = prefs.getString("username", "")!!
         )
