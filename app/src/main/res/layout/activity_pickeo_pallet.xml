@@ -21,14 +21,38 @@
         android:padding="24dp"
         android:layout_below="@id/topBar">
 
-        <EditText
-            android:id="@+id/etPallet"
-            android:background="@drawable/rounded_input_text"
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:text="Transferencia de Pallet"
+            android:layout_marginBottom="20dp"
+            android:textSize="25sp"/>
+
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="35dp" />
+            android:layout_height="wrap_content"
+            android:orientation="horizontal" >
+
+            <TextView
+                android:text="Codigo"
+                android:gravity="center"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_marginEnd="5dp"/>
+
+            <EditText
+                android:id="@+id/etPallet"
+                android:background="@drawable/rounded_input_text"
+                android:layout_width="match_parent"
+                android:padding="5dp"
+                android:layout_height="35dp" />
+
+        </LinearLayout>
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvPallets"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="20dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
@@ -36,6 +60,7 @@
             android:id="@+id/btnTransferir"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_gravity="center"
             android:text="Transferir"
             app:layout_constraintEnd_toEndOf="parent" />
 
