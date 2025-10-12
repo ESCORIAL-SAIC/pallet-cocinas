@@ -9,10 +9,10 @@ import androidx.recyclerview.widget.RecyclerView
 class PalletAdapter(private val pallets: List<Pallet>) :
     RecyclerView.Adapter<PalletAdapter.PalletViewHolder>() {
 
-
-
     class PalletViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val tvPalletCode = view.findViewById<TextView>(R.id.tvPalletCode)
+        val tvProductCode = view.findViewById<TextView>(R.id.tvProductCode)
+        val tvProductCant = view.findViewById<TextView>(R.id.tvProductCant)
         val itemLayout: View = view
     }
 
@@ -24,7 +24,9 @@ class PalletAdapter(private val pallets: List<Pallet>) :
 
     override fun onBindViewHolder(holder: PalletViewHolder, position: Int) {
         val pallet = pallets[position]
-        holder.tvPalletCode.text = "${pallet.codigo}"
+        holder.tvPalletCode.text = pallet.codigo
+        holder.tvProductCode.text = "${pallet.Products?.get(0)?.productCode}"
+        holder.tvProductCant.text = "${pallet.Products?.get(0)?.maxCantByPallet}"
     }
 
     override fun getItemCount() = pallets.size
