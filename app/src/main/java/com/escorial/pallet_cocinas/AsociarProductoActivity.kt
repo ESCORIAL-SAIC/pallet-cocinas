@@ -55,6 +55,7 @@ class AsociarProductoActivity : AppCompatActivity() {
     lateinit var palletRepository: PalletRepository
 
     var productsList: ArrayList<Product> = ArrayList()
+    lateinit var pickeadosTextView: TextView
 
     val itemTouchHelperCallback = object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
         override fun onMove(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder): Boolean {
@@ -374,12 +375,59 @@ class AsociarProductoActivity : AppCompatActivity() {
         productAdapter = ProductAdapter(productsList)
         productsRecyclerView.adapter = productAdapter
 
+        productAdapter.registerAdapterDataObserver(object : RecyclerView.AdapterDataObserver() {
+            override fun onChanged() {
+                super.onChanged()
+                actualizarContadorPickeados()
+            }
+
+            override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
+                super.onItemRangeInserted(positionStart, itemCount)
+                actualizarContadorPickeados()
+            }
+
+            override fun onItemRangeRemoved(positionStart: Int, itemCount: Int) {
+                super.onItemRangeRemoved(positionStart, itemCount)
+                actualizarContadorPickeados()
+            }
+
+            override fun onItemRangeChanged(positionStart: Int, itemCount: Int) {
+                super.onItemRangeChanged(positionStart, itemCount)
+                actualizarContadorPickeados()
+            }
+        })
+
+
         val itemTouchHelper = ItemTouchHelper(itemTouchHelperCallback)
         itemTouchHelper.attachToRecyclerView(productsRecyclerView)
 
         changePalletButton = findViewById(R.id.changePalletButton)
 
+        pickeadosTextView = findViewById(R.id.pickeadosTextView)
+
     }
+
+    private fun actualizarContadorPickeados() {
+        val count = getNotDeletedProducts().size
+        val pickeadosTextView = findViewById<TextView>(R.id.pickeadosTextView)
+
+        if (productsList.isNotEmpty()) {
+            val max = productsList.first().maxCantByPallet
+            pickeadosTextView.text = "Pickeados: $count/$max"
+
+            if (count == max) {
+                pickeadosTextView.setTextColor(getColor(android.R.color.holo_green_dark))
+            } else {
+                pickeadosTextView.setTextColor(getColor(android.R.color.black))
+            }
+        } else {
+            pickeadosTextView.text = "Pickeados: $count"
+            pickeadosTextView.setTextColor(getColor(android.R.color.black))
+        }
+    }
+
+
+
 
     private fun configProductSpinner() {
         val options2 = resources.getStringArray(R.array.tipo_producto)
@@ -441,6 +489,8 @@ class AsociarProductoActivity : AppCompatActivity() {
         palletEditText.isEnabled = prefs.getBoolean("palletEditTextEnabled", true)
         productEditText.isEnabled = prefs.getBoolean("productEditTextEnabled", false)
         productSpinner.isEnabled = prefs.getBoolean("productSpinnerEnabled", true)
+
+        actualizarContadorPickeados()
 
         val jsonList = prefs.getString("productsList", null)
         if (!jsonList.isNullOrEmpty()) {
