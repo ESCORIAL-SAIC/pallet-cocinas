@@ -131,9 +131,11 @@ class PickeoPalletActivity : AppCompatActivity() {
     }
 
     private fun handlePallet(pallet: Pallet) {
-
-        if (pallet == null) return
-
+        val products = pallet.Products ?: return
+        if (products.isEmpty()) {
+            Toast.makeText(this@PickeoPalletActivity, "El pallet no tiene productos asociados.", Toast.LENGTH_LONG).show()
+            return
+        }
         if (palletsList.contains(pallet)) {
             Toast.makeText(this@PickeoPalletActivity, "Pallet ya pickeado.", Toast.LENGTH_LONG).show()
             return
@@ -144,13 +146,13 @@ class PickeoPalletActivity : AppCompatActivity() {
             return
         }
 
+        // 4. Agrega el pallet y actualiza la UI.
         palletsList.add(pallet)
-
         palletAdapter.notifyDataSetChanged()
-
         palletEditText.text.clear()
         palletEditText.requestFocus()
     }
+
 
     private fun transferir() {
         if (isPalletRequestInProgress)
