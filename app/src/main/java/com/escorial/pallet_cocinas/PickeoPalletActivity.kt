@@ -188,26 +188,31 @@ class PickeoPalletActivity : AppCompatActivity() {
     }
 
     private fun handlePallet(pallet: Pallet) {
-        val products = pallet.Products ?: return
-        if (products.isEmpty()) {
-            Toast.makeText(this@PickeoPalletActivity, "El pallet no tiene productos asociados.", Toast.LENGTH_LONG).show()
-            return
-        }
-        if (palletsList.contains(pallet)) {
-            Toast.makeText(this@PickeoPalletActivity, "Pallet ya pickeado.", Toast.LENGTH_LONG).show()
-            return
-        }
+        try {
+            val products = pallet.Products ?: return
+            if (products.isEmpty()) {
+                Toast.makeText(this@PickeoPalletActivity, "El pallet no tiene productos asociados.", Toast.LENGTH_LONG).show()
+                return
+            }
+            if (palletsList.contains(pallet)) {
+                Toast.makeText(this@PickeoPalletActivity, "Pallet ya pickeado.", Toast.LENGTH_LONG).show()
+                return
+            }
 
-        if (pallet.transferir) {
-            Toast.makeText(this@PickeoPalletActivity, "Pallet ya transferido.", Toast.LENGTH_LONG).show()
-            return
+            if (pallet.transferir) {
+                Toast.makeText(this@PickeoPalletActivity, "Pallet ya transferido.", Toast.LENGTH_LONG).show()
+                return
+            }
+            palletsList.add(pallet)
         }
-
-        // 4. Agrega el pallet y actualiza la UI.
-        palletsList.add(pallet)
-        palletAdapter.notifyDataSetChanged()
-        palletEditText.text.clear()
-        palletEditText.requestFocus()
+        catch (e: Exception) {
+            Toast.makeText(this@PickeoPalletActivity, "Error al obtener datos.\n${e.message}", Toast.LENGTH_LONG).show()
+        }
+        finally {
+            palletAdapter.notifyDataSetChanged()
+            palletEditText.text.clear()
+            palletEditText.requestFocus()
+        }
     }
 
 
