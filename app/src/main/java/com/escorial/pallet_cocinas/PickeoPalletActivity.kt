@@ -1,5 +1,6 @@
 package com.escorial.pallet_cocinas
 
+import android.app.AlertDialog
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
@@ -18,9 +19,11 @@ import androidx.core.content.edit
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.escorial.pallet_cocinas.utils.apiMessage
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import java.io.IOException
@@ -38,8 +41,60 @@ class PickeoPalletActivity : AppCompatActivity() {
     lateinit var palletRepository: PalletRepository
     lateinit var palletAdapter: PalletAdapter
 
+    private var lastDeletedItem: Pallet? = null
+    private var lastDeletedItemPosition: Int = -1
 
+    val itemTouchHelperCallback = object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
+        override fun onMove(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder): Boolean {
+            return false
+        }
 
+        override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+            val position = viewHolder.adapterPosition
+            val item = palletsList[position]
+
+            if (direction == ItemTouchHelper.LEFT || direction == ItemTouchHelper.RIGHT) {
+                swipeActionDelete(item, position)
+            }
+        }
+    }
+
+    private fun swipeActionDelete(item: Pallet, position: Int) {
+        AlertDialog.Builder(this)
+            .setTitle("Confirmar eliminación")
+            .setMessage("¿Seguro que quieres desasociar este elemento?")
+            .setPositiveButton("Sí") { _, _ ->
+                deleteItem(item, position)
+                Snackbar.make(palletsRecyclerView, "Ítem eliminado", Snackbar.LENGTH_LONG)
+                    .setAction("Deshacer") {
+                        restoreItem()
+                    }
+                    .show()
+            }
+            .setNegativeButton("Cancelar") { _, _ ->
+                palletAdapter.notifyItemChanged(position)
+            }
+            .setCancelable(false)
+            .show()
+    }
+
+    private fun deleteItem(item: Pallet, position: Int) {
+        lastDeletedItem = item
+        lastDeletedItemPosition = position
+
+        palletsList.removeAt(position)
+        palletAdapter.notifyItemRemoved(position)
+    }
+
+    private fun restoreItem() {
+        if (lastDeletedItem != null && lastDeletedItemPosition != -1) {
+            palletsList.add(lastDeletedItemPosition, lastDeletedItem!!)
+            palletAdapter.notifyItemInserted(lastDeletedItemPosition)
+
+            lastDeletedItem = null
+            lastDeletedItemPosition = -1
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -78,6 +133,8 @@ class PickeoPalletActivity : AppCompatActivity() {
         palletsRecyclerView.layoutManager = LinearLayoutManager(this)
         palletAdapter = PalletAdapter(palletsList)
         palletsRecyclerView.adapter = palletAdapter
+        val itemTouchHelper = ItemTouchHelper(itemTouchHelperCallback)
+        itemTouchHelper.attachToRecyclerView(palletsRecyclerView)
     }
 
     private fun logout() {
@@ -131,26 +188,31 @@ class PickeoPalletActivity : AppCompatActivity() {
     }
 
     private fun handlePallet(pallet: Pallet) {
-        val products = pallet.Products ?: return
-        if (products.isEmpty()) {
-            Toast.makeText(this@PickeoPalletActivity, "El pallet no tiene productos asociados.", Toast.LENGTH_LONG).show()
-            return
-        }
-        if (palletsList.contains(pallet)) {
-            Toast.makeText(this@PickeoPalletActivity, "Pallet ya pickeado.", Toast.LENGTH_LONG).show()
-            return
-        }
+        try {
+            val products = pallet.Products ?: return
+            if (products.isEmpty()) {
+                Toast.makeText(this@PickeoPalletActivity, "El pallet no tiene productos asociados.", Toast.LENGTH_LONG).show()
+                return
+            }
+            if (palletsList.contains(pallet)) {
+                Toast.makeText(this@PickeoPalletActivity, "Pallet ya pickeado.", Toast.LENGTH_LONG).show()
+                return
+            }
 
-        if (pallet.transferir) {
-            Toast.makeText(this@PickeoPalletActivity, "Pallet ya transferido.", Toast.LENGTH_LONG).show()
-            return
+            if (pallet.transferir) {
+                Toast.makeText(this@PickeoPalletActivity, "Pallet ya transferido.", Toast.LENGTH_LONG).show()
+                return
+            }
+            palletsList.add(pallet)
         }
-
-        // 4. Agrega el pallet y actualiza la UI.
-        palletsList.add(pallet)
-        palletAdapter.notifyDataSetChanged()
-        palletEditText.text.clear()
-        palletEditText.requestFocus()
+        catch (e: Exception) {
+            Toast.makeText(this@PickeoPalletActivity, "Error al obtener datos.\n${e.message}", Toast.LENGTH_LONG).show()
+        }
+        finally {
+            palletAdapter.notifyDataSetChanged()
+            palletEditText.text.clear()
+            palletEditText.requestFocus()
+        }
     }
 
 
