@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">pallet-cocinas</string>
+    <string name="app_name">Pallets</string>
     <string-array name="tipo_producto">
         <item>COCINA</item>
         <item>TERMO/CALEFON</item>
