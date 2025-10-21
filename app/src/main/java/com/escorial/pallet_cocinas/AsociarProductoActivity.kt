@@ -309,6 +309,7 @@ class AsociarProductoActivity : AppCompatActivity() {
             Toast.makeText(this@AsociarProductoActivity, "Debe asociar todos los productos", Toast.LENGTH_LONG).show()
             return
         }
+        isSubmitRequestInProgress = true
         progressBar.visibility = View.VISIBLE
         var palletPost = Pallet(
             id = java.util.UUID.randomUUID(),
