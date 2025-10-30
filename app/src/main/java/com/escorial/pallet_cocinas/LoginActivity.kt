@@ -81,7 +81,7 @@ class LoginActivity : AppCompatActivity() {
 
     private fun startMainActivity(bypass: Boolean) {
         val intent: Intent = if (bypass)
-            Intent(this, PickeoPalletActivity::class.java)
+            Intent(this, ExpedicionActivity::class.java)
         else
             Intent(this, AsociarProductoActivity::class.java)
         startActivity(intent)

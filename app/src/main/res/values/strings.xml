@@ -5,4 +5,5 @@
         <item>TERMO/CALEFON</item>
     </string-array>
     <string name="title_pallet_item">PALLET</string>
+    <string name="title_pickeo_pallet_activity">{type} de Pallet</string>
 </resources>

@@ -26,6 +26,7 @@ import com.escorial.pallet_cocinas.utils.apiMessage
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
+import retrofit2.Response
 import java.io.IOException
 
 class PickeoPalletActivity : AppCompatActivity() {
@@ -33,6 +34,7 @@ class PickeoPalletActivity : AppCompatActivity() {
 
     var isPalletRequestInProgress = false
     lateinit var transferirButton: Button
+    lateinit var lblTitle: TextView
     lateinit var palletEditText: EditText
     lateinit var palletsRecyclerView: RecyclerView
     lateinit var progressBar: ProgressBar
@@ -40,6 +42,7 @@ class PickeoPalletActivity : AppCompatActivity() {
     var palletsList: ArrayList<Pallet> = ArrayList()
     lateinit var palletRepository: PalletRepository
     lateinit var palletAdapter: PalletAdapter
+    lateinit var tipo: String
 
     private var lastDeletedItem: Pallet? = null
     private var lastDeletedItemPosition: Int = -1
@@ -109,6 +112,8 @@ class PickeoPalletActivity : AppCompatActivity() {
     }
 
     private fun loadControls() {
+        tipo = intent.getStringExtra("tipo") ?: ""
+
         prefs = getSharedPreferences("user_prefs", MODE_PRIVATE)
 
         val topBar = findViewById<TopBar>(R.id.topBar)
@@ -123,10 +128,24 @@ class PickeoPalletActivity : AppCompatActivity() {
             Toast.makeText(this@PickeoPalletActivity, "Logout", Toast.LENGTH_SHORT).show()
         }
         api = ApiClient.getApiService(this)
+        lblTitle = findViewById(R.id.lblTitle)
+        lblTitle.text = lblTitle.text.toString().replace("{type}", if(tipo == "transferir") "Transferencia" else "Desasociación")
         palletRepository = PalletRepository(api)
         progressBar = findViewById(R.id.progressBar)
         transferirButton = findViewById(R.id.btnTransferir)
-        transferirButton.setOnClickListener { transferir() }
+        transferirButton.setOnClickListener {
+            AlertDialog.Builder(this)
+                .setTitle("Confirmar ${if (tipo == "transferir") "transferencia" else "desasociación"}?")
+                .setMessage("¿Seguro que quieres ${if (tipo == "transferir") "transferir" else "desasociar"} este elemento?")
+                .setPositiveButton("Sí") { _, _ ->
+                    transferir()
+                }
+                .setNegativeButton("Cancelar", null)
+                .show()
+        }
+        if (tipo == "desasociar") {
+            transferirButton.text = "Desasociar"
+        }
         palletsRecyclerView = findViewById(R.id.rvPallets)
         palletEditText = findViewById(R.id.etPallet)
         palletEditText.setOnEditorActionListener(createEnterListener("pallet"))
@@ -199,10 +218,17 @@ class PickeoPalletActivity : AppCompatActivity() {
                 return
             }
 
-            if (pallet.transferir) {
-                Toast.makeText(this@PickeoPalletActivity, "Pallet ya transferido.", Toast.LENGTH_LONG).show()
-                return
+            if (tipo == "transferir") {
+                if (pallet.transferir) {
+                    Toast.makeText(
+                        this@PickeoPalletActivity,
+                        "Pallet ya transferido.",
+                        Toast.LENGTH_LONG
+                    ).show()
+                    return
+                }
             }
+
             palletsList.add(pallet)
         }
         catch (e: Exception) {
@@ -217,20 +243,44 @@ class PickeoPalletActivity : AppCompatActivity() {
 
 
     private fun transferir() {
-        if (isPalletRequestInProgress)
+        if (isPalletRequestInProgress) {
+            Toast.makeText(this@PickeoPalletActivity, "Ya hay una transferencia en curso.", Toast.LENGTH_LONG).show()
             return
+        }
 
-        if (palletsList.isEmpty())
+        if (palletsList.isEmpty()) {
+            Toast.makeText(this@PickeoPalletActivity, "No hay pallets seleccionados.", Toast.LENGTH_LONG).show()
             return
+        }
 
         isPalletRequestInProgress = true
         progressBar.visibility = View.VISIBLE
 
         lifecycleScope.launch {
             try {
-                var response = api.postPalletTransfer(palletsList)
+                var response: Response<Unit> = Response.success(Unit)
+
+                if (tipo == "transferir") {
+                    response = api.postPalletTransfer(palletsList)
+                } else if (tipo == "desasociar") {
+                    palletsList.forEach { pallet ->
+                        pallet.Products?.forEach { product ->
+                            product.deleted = true
+                        }
+                        response = api.postPalletProducts(pallet)
+                    }
+                } else {
+                    return@launch
+                }
+
                 if (response.isSuccessful) {
-                    Toast.makeText(this@PickeoPalletActivity, "Transferencia exitosa.", Toast.LENGTH_LONG).show()
+                    var message = ""
+                    if (tipo == "transferir") {
+                        message = "Transferencia"
+                    } else if (tipo == "desasociar") {
+                        message = "Desasociación"
+                    }
+                    Toast.makeText(this@PickeoPalletActivity, "${message} exitosa.", Toast.LENGTH_LONG).show()
                     palletsList.clear()
                     palletAdapter.notifyDataSetChanged()
                     palletEditText.text.clear()
