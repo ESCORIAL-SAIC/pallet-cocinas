@@ -14,6 +14,7 @@ import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import android.widget.ProgressBar
 import android.view.View
+import android.widget.TextView
 import androidx.appcompat.widget.AppCompatImageButton
 import com.escorial.pallet_cocinas.utils.apiMessage
 
@@ -25,6 +26,9 @@ class LoginActivity : AppCompatActivity() {
     lateinit var etUsername: EditText
     lateinit var etPassword: EditText
     lateinit var progressBar: ProgressBar
+    lateinit var tvVersionCode: TextView
+    val VERSION_CODE: Int = BuildConfig.VERSION_CODE
+    val VERSION_NAME: String = BuildConfig.VERSION_NAME
 
     val api get() = ApiClient.getApiService(this)
 
@@ -107,6 +111,12 @@ class LoginActivity : AppCompatActivity() {
             val intent = Intent(this, ConfigActivity::class.java)
             startActivity(intent)
         }
+
+        tvVersionCode = findViewById<TextView>(R.id.tvVersionCode)
+        tvVersionCode.text = tvVersionCode.text.toString()
+            .replace("{0}", VERSION_NAME)
+            .replace("{1}", VERSION_CODE.toString())
+
     }
 
     private fun saveLoggedUserData(username: String, fullName: String) {
