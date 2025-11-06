@@ -31,9 +31,10 @@ jobs:
       - name: Decode keystore from base64
         shell: pwsh
         run: |
-          $keystorePath = Join-Path $PWD "my-release-key.keystore"
+          $keystorePath = Join-Path $PWD "app/my-release-key.keystore"
           [System.IO.File]::WriteAllBytes($keystorePath, [Convert]::FromBase64String("${{ secrets.ORG_ANDROID_KEYSTORE_BASE64 }}"))
-          Write-Host "Keystore path: $keystorePath"
+          Write-Host "✅ Keystore generado en: $keystorePath"
+
 
       - name: Detect PR labels
         id: labels
@@ -75,8 +76,8 @@ jobs:
           git commit -m "chore: bump build number to $number"
           git push origin main
 
-          git fetch origin ${{ github.event.pull_request.head.ref }}
-          git checkout ${{ github.event.pull_request.head.ref }}
+          git fetch origin dev
+          git checkout dev
 
       - name: Increment version in Gradle (KTS)
         id: versioning
