@@ -1,0 +1,214 @@
+name: Prerelease Android APK on Dev Merge
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - dev
+
+jobs:
+  build:
+    name: Build Signed Android APK and Prerelease
+    if: github.event.pull_request.merged == true
+    runs-on: windows-latest
+
+    env:
+      ANDROID_HOME: C:\Android\Sdk
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Decode keystore from base64
+        shell: pwsh
+        run: |
+          $keystorePath = Join-Path $PWD "my-release-key.keystore"
+          [System.IO.File]::WriteAllBytes($keystorePath, [Convert]::FromBase64String("${{ secrets.ORG_ANDROID_KEYSTORE_BASE64 }}"))
+          Write-Host "Keystore path: $keystorePath"
+
+      - name: Detect PR labels
+        id: labels
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const pr = context.payload.pull_request;
+            const labels = pr.labels.map(l => l.name.toLowerCase());
+            let releaseType = "bugfix";
+            if (labels.includes("breaking")) releaseType = "breaking";
+            else if (labels.includes("feature")) releaseType = "feature";
+            else if (labels.includes("bugfix")) releaseType = "bugfix";
+            core.exportVariable("RELEASE_TYPE", releaseType);
+
+      - name: Increment build number (shared with MAUI)
+        id: buildnum
+        shell: pwsh
+        run: |
+          git fetch origin main
+          git checkout main
+
+          $file = "build-number.txt"
+
+          if (Test-Path $file) {
+            $number = Get-Content $file
+            $number = [int]$number + 1
+          } else {
+            $number = 39  # valor inicial
+          }
+
+          Set-Content $file $number
+          echo "BUILD_NUMBER=$number" >> $env:GITHUB_ENV
+          echo "BUILD_NUMBER=$number" >> $GITHUB_OUTPUT
+
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add $file
+          git commit -m "chore: bump build number to $number"
+          git push origin main
+
+      - name: Increment version in Gradle (KTS)
+        id: versioning
+        shell: pwsh
+        run: |
+          $gradleFile = "app/build.gradle.kts"
+          $content = Get-Content $gradleFile -Raw
+
+          # Detect current versionName and versionCode
+          if ($content -match 'versionName\s*=\s*"([^"]+)"') {
+            $versionName = $matches[1]
+          } else {
+            $versionName = "0.1.0"
+          }
+
+          $releaseType = $env:RELEASE_TYPE
+          if (-not $releaseType) { $releaseType = "bugfix" }
+
+          $parts = $versionName -replace '-dev','' -split '\.'
+          $major = [int]$parts[0]
+          $minor = [int]$parts[1]
+          $patch = [int]$parts[2]
+
+          switch ($releaseType) {
+              "bugfix"   { $patch += 1 }
+              "feature"  { $minor += 1; $patch = 0 }
+              "breaking" { $major += 1; $minor = 0; $patch = 0 }
+          }
+
+          $newVersionName = "$major.$minor.$patch-dev"
+          $runNumber = [int]$env:BUILD_NUMBER
+          $newVersionCode = $runNumber + ($major * 10000) + ($minor * 100) + $patch
+
+          # Reemplazo en formato Kotlin Script (usa "=" en vez de espacio)
+          $content = $content -replace 'versionName\s*=\s*".*"', "versionName = `"$newVersionName`""
+          $content = $content -replace 'versionCode\s*=\s*\d+', "versionCode = $newVersionCode"
+          Set-Content $gradleFile $content -Encoding utf8
+
+          Write-Host "Run number: $runNumber"
+          Write-Host "New versionName: $newVersionName"
+          Write-Host "VersionCode: $newVersionCode"
+
+          echo "version=$newVersionName" >> $env:GITHUB_ENV
+          echo "versionCode=$newVersionCode" >> $env:GITHUB_ENV
+
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add $gradleFile
+          git commit -m "chore: bump version $newVersionName"
+          git tag $newVersionName
+          git push origin HEAD
+          git push origin $newVersionName
+
+      - name: Build release APK
+        shell: pwsh
+        run: |
+          ./gradlew.bat assembleRelease `
+            -Pandroid.injected.signing.store.file="my-release-key.keystore" `
+            -Pandroid.injected.signing.store.password="${{ secrets.ORG_ANDROID_KEYSTORE_PASSWORD }}" `
+            -Pandroid.injected.signing.key.alias="${{ secrets.ORG_ANDROID_KEY_ALIAS }}" `
+            -Pandroid.injected.signing.key.password="${{ secrets.ORG_ANDROID_KEY_PASSWORD }}"
+
+          $apkPath = Get-ChildItem "app/build/outputs/apk/release" -Filter *.apk | Select-Object -First 1
+          $newApkName = "com.escorial.pallet_cocinas-${{ env.version }}-${{ env.versionCode }}.apk"
+          $newApkPath = Join-Path $PWD $newApkName
+          Copy-Item $apkPath.FullName $newApkPath
+
+          echo "apk_path=$newApkPath" >> $env:GITHUB_ENV
+
+      - name: Create GitHub Prerelease
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.version }}
+          name: Pallets (pre-release) - ${{ env.version }}
+          body: ${{ env.version }}
+          files: ${{ env.apk_path }}
+          prerelease: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk
+          path: ${{ env.apk_path }}
+          retention-days: 1
+
+  fdroid-publish:
+    name: Publicar en F-Droid Repo
+    needs: build
+    runs-on: ubuntu-latest
+    if: success() && github.event.pull_request.merged == true
+
+    steps:
+      - name: Checkout del repositorio principal
+        uses: actions/checkout@v3
+
+      - name: Descargar el APK de la compilación anterior
+        uses: actions/download-artifact@v4
+        with:
+          name: android-apk
+          path: ./downloaded-apk
+
+      - name: Checkout del repositorio de F-Droid
+        uses: actions/checkout@v3
+        with:
+          repository: ESCORIAL-SAIC/fdroidrepo
+          token: ${{ secrets.ORG_FDROID_REPO_TOKEN }}
+          path: fdroid-repo
+
+      - name: Instalar fdroidserver
+        run: sudo apt-get update && sudo apt-get install fdroidserver -y
+
+      - name: Importar APK y actualizar el repo
+        working-directory: fdroid-repo
+        run: |
+          DOWNLOADED_APK_PATH=$(ls ../downloaded-apk/*.apk)
+          if [ -z "$DOWNLOADED_APK_PATH" ]; then
+            echo "❌ No se encontró ningún APK en el artifact 'android-apk'"
+            exit 1
+          fi
+
+          echo "✅ APK encontrado: $DOWNLOADED_APK_PATH"
+          cp "$DOWNLOADED_APK_PATH" ./repo/
+
+          echo "${{ secrets.ORG_ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > my-release-key.keystore
+          fdroid update -c
+
+      - name: Commit y push de cambios
+        run: |
+          cd fdroid-repo
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add .
+          git commit -m "chore: Actualizar repositorio F-Droid con nueva versión Android"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.ORG_FDROID_REPO_TOKEN }}
