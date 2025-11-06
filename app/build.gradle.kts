@@ -11,8 +11,8 @@ android {
         applicationId = "com.escorial.pallet_cocinas"
         minSdk = 28
         targetSdk = 35
-        versionCode = 4
-        versionName = "1.1.1"
+        versionCode = 20153
+        versionName = "1.1.2-dev"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
