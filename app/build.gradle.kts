@@ -11,8 +11,8 @@ android {
         applicationId = "com.escorial.pallet_cocinas"
         minSdk = 28
         targetSdk = 35
-        versionCode = 20161
-        versionName = "1.1.6-dev"
+        versionCode = 20163
+        versionName = "1.1.7-dev"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -51,6 +51,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4") // Corutinas
     implementation("androidx.recyclerview:recyclerview:1.2.1")
 }
+
 
 
 
