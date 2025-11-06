@@ -35,6 +35,14 @@ jobs:
           [System.IO.File]::WriteAllBytes($keystorePath, [Convert]::FromBase64String("${{ secrets.ORG_ANDROID_KEYSTORE_BASE64 }}"))
           Write-Host "✅ Keystore generado en: $keystorePath"
 
+      - name: Ensure Gradle can find keystore
+        shell: pwsh
+        run: |
+          $gradleKeystoreDir = "C:\Users\runneradmin\.gradle\daemon\8.11.1"
+          New-Item -ItemType Directory -Force -Path $gradleKeystoreDir | Out-Null
+          Copy-Item "app/my-release-key.keystore" "$gradleKeystoreDir\my-release-key.keystore" -Force
+          Write-Host "✅ Copiado keystore a $gradleKeystoreDir"
+
 
       - name: Detect PR labels
         id: labels
@@ -131,30 +139,32 @@ jobs:
           git push origin HEAD
           git push origin $newVersionName
 
-      - name: Copiar keystore al home del runner
-        run: |
-          mkdir -p "C:\Users\runneradmin\.gradle\daemon\8.11.1"
-          cp app/my-release-key.keystore "C:\Users\runneradmin\.gradle\daemon\8.11.1\"
-
-
       - name: Build release APK
         shell: pwsh
         run: |
+          $keystorePath = "C:\Users\runneradmin\.gradle\daemon\8.11.1\my-release-key.keystore"
+
           $signingArgs = @(
-            "-Pandroid.injected.signing.store.file=my-release-key.keystore",
-            "-Pandroid.injected.signing.store.password=${{ secrets.ORG_ANDROID_KEYSTORE_PASSWORD }}",
-            "-Pandroid.injected.signing.key.alias=${{ secrets.ORG_ANDROID_KEY_ALIAS }}",
-            "-Pandroid.injected.signing.key.password=${{ secrets.ORG_ANDROID_KEY_PASSWORD }}"
+              "-Pandroid.injected.signing.store.file=$keystorePath",
+              "-Pandroid.injected.signing.store.password=${{ secrets.ORG_ANDROID_KEYSTORE_PASSWORD }}",
+              "-Pandroid.injected.signing.key.alias=${{ secrets.ORG_ANDROID_KEY_ALIAS }}",
+              "-Pandroid.injected.signing.key.password=${{ secrets.ORG_ANDROID_KEY_PASSWORD }}"
           )
+
+          $apkPath = Get-ChildItem "app/build/outputs/apk/release" -Filter *.apk | Select-Object -First 1
+          if (-not $apkPath) {
+            Write-Error "❌ No se generó el APK de release"
+            exit 1
+          }
 
           ./gradlew.bat assembleRelease @signingArgs
 
-          $apkPath = Get-ChildItem "app/build/outputs/apk/release" -Filter *.apk | Select-Object -First 1
           $newApkName = "com.escorial.pallet_cocinas-${{ env.version }}-${{ env.versionCode }}.apk"
           $newApkPath = Join-Path $PWD $newApkName
           Copy-Item $apkPath.FullName $newApkPath
 
           echo "apk_path=$newApkPath" >> $env:GITHUB_ENV
+          Write-Host "✅ APK generado en: $newApkPath"
 
       - name: Create GitHub Prerelease
         uses: softprops/action-gh-release@v2
