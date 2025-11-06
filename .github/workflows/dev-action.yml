@@ -133,8 +133,9 @@ jobs:
 
       - name: Copiar keystore al home del runner
         run: |
-          mkdir -p $HOME/.gradle/daemon/8.11.1
-          cp app/my-release-key.keystore $HOME/.gradle/daemon/8.11.1/
+          mkdir -p "C:\Users\runneradmin\.gradle\daemon\8.11.1"
+          cp app/my-release-key.keystore "C:\Users\runneradmin\.gradle\daemon\8.11.1\"
+
 
       - name: Build release APK
         shell: pwsh
