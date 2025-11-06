@@ -75,6 +75,9 @@ jobs:
           git commit -m "chore: bump build number to $number"
           git push origin main
 
+          git fetch origin ${{ github.event.pull_request.head.ref }}
+          git checkout ${{ github.event.pull_request.head.ref }}
+
       - name: Increment version in Gradle (KTS)
         id: versioning
         shell: pwsh
@@ -130,7 +133,14 @@ jobs:
       - name: Build release APK
         shell: pwsh
         run: |
-          ./gradlew.bat assembleRelease -Pandroid.injected.signing.store.file="my-release-key.keystore" -Pandroid.injected.signing.store.password="${{ secrets.ORG_ANDROID_KEYSTORE_PASSWORD }}" -Pandroid.injected.signing.key.alias="${{ secrets.ORG_ANDROID_KEY_ALIAS }}" -Pandroid.injected.signing.key.password="${{ secrets.ORG_ANDROID_KEY_PASSWORD }}"
+          $signingArgs = @(
+            "-Pandroid.injected.signing.store.file=my-release-key.keystore",
+            "-Pandroid.injected.signing.store.password=${{ secrets.ORG_ANDROID_KEYSTORE_PASSWORD }}",
+            "-Pandroid.injected.signing.key.alias=${{ secrets.ORG_ANDROID_KEY_ALIAS }}",
+            "-Pandroid.injected.signing.key.password=${{ secrets.ORG_ANDROID_KEY_PASSWORD }}"
+          )
+
+          ./gradlew.bat assembleRelease @signingArgs
 
           $apkPath = Get-ChildItem "app/build/outputs/apk/release" -Filter *.apk | Select-Object -First 1
           $newApkName = "com.escorial.pallet_cocinas-${{ env.version }}-${{ env.versionCode }}.apk"
