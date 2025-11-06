@@ -222,8 +222,6 @@ jobs:
         run: |
           source .venv/bin/activate
           fdroid --version
-          python -m androguard.version
-
 
       - name: Importar APK y actualizar el repo
         working-directory: fdroid-repo
