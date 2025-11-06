@@ -75,6 +75,9 @@ jobs:
           git commit -m "chore: bump build number to $number"
           git push origin main
 
+          git fetch origin ${{ github.event.pull_request.head.ref }}
+          git checkout ${{ github.event.pull_request.head.ref }}
+
       - name: Increment version in Gradle (KTS)
         id: versioning
         shell: pwsh
