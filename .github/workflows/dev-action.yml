@@ -58,7 +58,7 @@ jobs:
             else if (labels.includes("bugfix")) releaseType = "bugfix";
             core.exportVariable("RELEASE_TYPE", releaseType);
 
-      - name: Increment build number (shared with MAUI)
+      - name: Increment build number
         id: buildnum
         shell: pwsh
         run: |
@@ -207,12 +207,29 @@ jobs:
           token: ${{ secrets.ORG_FDROID_REPO_TOKEN }}
           path: fdroid-repo
 
-      - name: Instalar fdroidserver
-        run: sudo apt-get update && sudo apt-get install fdroidserver -y
+      - name: Instalar fdroidserver actualizado
+        run: |
+          sudo apt-get update
+          sudo apt-get install python3-pip python3-venv -y
+          python3 -m venv .venv
+          source .venv/bin/activate
+          pip install --upgrade pip
+          pip install --upgrade fdroidserver androguard
+          fdroid --version
+
+
+      - name: Verificar versión instalada
+        run: |
+          source .venv/bin/activate
+          fdroid --version
+          python -m androguard.version
+
 
       - name: Importar APK y actualizar el repo
         working-directory: fdroid-repo
         run: |
+          source ../.venv/bin/activate
+
           DOWNLOADED_APK_PATH=$(ls ../downloaded-apk/*.apk)
           if [ -z "$DOWNLOADED_APK_PATH" ]; then
             echo "❌ No se encontró ningún APK en el artifact 'android-apk'"
@@ -224,6 +241,7 @@ jobs:
 
           echo "${{ secrets.ORG_ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > my-release-key.keystore
           fdroid update -c
+
 
       - name: Commit y push de cambios
         run: |
