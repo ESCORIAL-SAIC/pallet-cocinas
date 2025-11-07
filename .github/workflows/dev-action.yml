@@ -237,8 +237,12 @@ jobs:
           echo "✅ APK encontrado: $DOWNLOADED_APK_PATH"
           cp "$DOWNLOADED_APK_PATH" ./repo/
 
+          sudo apt-get install -y apksigner
+          echo "apksigner = /usr/bin/apksigner" >> config.yml
+
           echo "${{ secrets.ORG_ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > my-release-key.keystore
           fdroid update -c
+
 
 
       - name: Commit y push de cambios
