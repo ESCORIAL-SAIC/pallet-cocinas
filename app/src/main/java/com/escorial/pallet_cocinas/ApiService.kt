@@ -20,7 +20,7 @@ interface ApiService {
     suspend fun getPalletProducts(@Query("numero") numero: String): ArrayList<Product>?
 
     @GET("api/productos")
-    suspend fun getProduct(@Query("numero") numero: Int, @Query("tipo") tipo: String): Product
+    suspend fun getProduct(@Query("numeroRecibido") numero: String, @Query("tipo") tipo: String): Product
 
     @POST("api/pallets/asociar-productos")
     suspend fun postPalletProducts(@Body pallet: Pallet): Response<Unit>

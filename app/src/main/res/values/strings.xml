@@ -3,6 +3,7 @@
     <string-array name="tipo_producto">
         <item>COCINA</item>
         <item>TERMO/CALEFON</item>
+        <item>IMPORTADO</item>
     </string-array>
     <string name="title_pallet_item">PALLET</string>
     <string name="title_pickeo_pallet_activity">{type} de Pallet</string>

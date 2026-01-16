@@ -195,10 +195,13 @@ class AsociarProductoActivity : AppCompatActivity() {
                     throw Exception("Campo de producto vacío")
                 }
                 var product = if (selectedProductType == "COCINA") {
-                    api.getProduct(productSerial.toInt(), "COCINA")
+                    api.getProduct(productSerial, "COCINA")
                 } else if (selectedProductType == "TERMO/CALEFON") {
-                    api.getProduct(productSerial.toInt(), "TERMOTANQUE")
-                } else {
+                    api.getProduct(productSerial, "TERMOTANQUE")
+                } else if (selectedProductType == "IMPORTADO") {
+                    api.getProduct(productSerial, "IMPORTADO")
+                }
+                else {
                     throw Exception("Debe seleccionar un tipo de producto para continuar")
                 }
                 handleProduct(product)
