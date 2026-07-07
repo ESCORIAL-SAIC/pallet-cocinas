@@ -33,6 +33,9 @@ android {
     kotlinOptions {
         jvmTarget = "11"
     }
+    buildFeatures {
+        viewBinding = true
+    }
 }
 
 dependencies {
@@ -43,6 +46,8 @@ dependencies {
     implementation(libs.androidx.constraintlayout)
     implementation("com.google.code.gson:gson:2.10.1")
     implementation(libs.androidx.recyclerview)
+    implementation(libs.androidx.lifecycle.viewmodel.ktx)
+    implementation(libs.androidx.lifecycle.runtime.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

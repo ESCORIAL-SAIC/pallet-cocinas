@@ -1,4 +1,7 @@
-package com.escorial.pallet_cocinas
+package com.escorial.pallet_cocinas.data.repository
+
+import com.escorial.pallet_cocinas.data.model.Pallet
+import com.escorial.pallet_cocinas.data.remote.ApiService
 
 class PalletRepository(private val api: ApiService) {
 

@@ -1,4 +1,4 @@
-package com.escorial.pallet_cocinas
+package com.escorial.pallet_cocinas.data.model
 
 import java.util.UUID
 

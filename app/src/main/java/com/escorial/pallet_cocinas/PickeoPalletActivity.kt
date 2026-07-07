@@ -2,75 +2,63 @@ package com.escorial.pallet_cocinas
 
 import android.app.AlertDialog
 import android.content.Intent
-import android.content.SharedPreferences
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
-import android.widget.Button
-import android.widget.EditText
-import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.edit
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.escorial.pallet_cocinas.utils.apiMessage
+import com.escorial.pallet_cocinas.databinding.ActivityPickeoPalletBinding
+import com.escorial.pallet_cocinas.di.ViewModelFactory
+import com.escorial.pallet_cocinas.di.appContainer
+import com.escorial.pallet_cocinas.viewmodel.PickeoPalletEvent
+import com.escorial.pallet_cocinas.viewmodel.PickeoPalletUiState
+import com.escorial.pallet_cocinas.viewmodel.PickeoPalletViewModel
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
-import retrofit2.HttpException
-import retrofit2.Response
-import java.io.IOException
 
 class PickeoPalletActivity : AppCompatActivity() {
-    lateinit var prefs: SharedPreferences
 
-    var isPalletRequestInProgress = false
-    lateinit var transferirButton: Button
-    lateinit var lblTitle: TextView
-    lateinit var palletEditText: EditText
-    lateinit var palletsRecyclerView: RecyclerView
-    lateinit var progressBar: ProgressBar
-    lateinit var api: ApiService
-    var palletsList: ArrayList<Pallet> = ArrayList()
-    lateinit var palletRepository: PalletRepository
-    lateinit var palletAdapter: PalletAdapter
-    lateinit var tipo: String
+    private lateinit var binding: ActivityPickeoPalletBinding
+    private lateinit var viewModel: PickeoPalletViewModel
+    private lateinit var palletAdapter: PalletAdapter
 
-    private var lastDeletedItem: Pallet? = null
-    private var lastDeletedItemPosition: Int = -1
-
-    val itemTouchHelperCallback = object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
+    private val itemTouchHelperCallback = object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
         override fun onMove(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder): Boolean {
             return false
         }
 
         override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
             val position = viewHolder.adapterPosition
-            val item = palletsList[position]
-
             if (direction == ItemTouchHelper.LEFT || direction == ItemTouchHelper.RIGHT) {
-                swipeActionDelete(item, position)
+                swipeActionDelete(position)
             }
         }
     }
 
-    private fun swipeActionDelete(item: Pallet, position: Int) {
+    private fun swipeActionDelete(position: Int) {
         AlertDialog.Builder(this)
             .setTitle("Confirmar eliminación")
             .setMessage("¿Seguro que quieres desasociar este elemento?")
             .setPositiveButton("Sí") { _, _ ->
-                deleteItem(item, position)
-                Snackbar.make(palletsRecyclerView, "Ítem eliminado", Snackbar.LENGTH_LONG)
+                viewModel.eliminarPallet(position)
+                palletAdapter.notifyItemRemoved(position)
+                Snackbar.make(binding.rvPallets, "Ítem eliminado", Snackbar.LENGTH_LONG)
                     .setAction("Deshacer") {
-                        restoreItem()
+                        val restoredPosition = viewModel.restaurarUltimoEliminado()
+                        if (restoredPosition != null) palletAdapter.notifyItemInserted(restoredPosition)
                     }
                     .show()
             }
@@ -81,219 +69,101 @@ class PickeoPalletActivity : AppCompatActivity() {
             .show()
     }
 
-    private fun deleteItem(item: Pallet, position: Int) {
-        lastDeletedItem = item
-        lastDeletedItemPosition = position
-
-        palletsList.removeAt(position)
-        palletAdapter.notifyItemRemoved(position)
-    }
-
-    private fun restoreItem() {
-        if (lastDeletedItem != null && lastDeletedItemPosition != -1) {
-            palletsList.add(lastDeletedItemPosition, lastDeletedItem!!)
-            palletAdapter.notifyItemInserted(lastDeletedItemPosition)
-
-            lastDeletedItem = null
-            lastDeletedItemPosition = -1
-        }
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContentView(R.layout.activity_pickeo_pallet)
-        loadControls()
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
+        binding = ActivityPickeoPalletBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        ViewCompat.setOnApplyWindowInsetsListener(binding.main) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+
+        val tipo = intent.getStringExtra("tipo") ?: ""
+        viewModel = ViewModelProvider(
+            this,
+            ViewModelFactory { PickeoPalletViewModel(appContainer.expedicionRepository, appContainer.sessionRepository, tipo) }
+        )[PickeoPalletViewModel::class.java]
+
+        loadControls(tipo)
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch { viewModel.uiState.collect { render(it) } }
+                launch { viewModel.events.collect { handleEvent(it) } }
+                launch { viewModel.errorEvents.collect { Toast.makeText(this@PickeoPalletActivity, it, Toast.LENGTH_LONG).show() } }
+            }
+        }
     }
 
-    private fun loadControls() {
-        tipo = intent.getStringExtra("tipo") ?: ""
+    private fun loadControls(tipo: String) {
+        val state = viewModel.uiState.value
 
-        prefs = getSharedPreferences("user_prefs", MODE_PRIVATE)
-
-        val topBar = findViewById<TopBar>(R.id.topBar)
-
-        val username = prefs.getString("username", "null")
-        val fullName = prefs.getString("fullName", "null")
-
-        topBar.setUserInfo(username, fullName)
-        topBar.setLogoutButtonVisibility(true)
-        topBar.setOnLogoutClickListener  {
+        binding.topBar.setUserInfo(state.username, state.fullName)
+        binding.topBar.setLogoutButtonVisibility(true)
+        binding.topBar.setOnLogoutClickListener {
             logout()
             Toast.makeText(this@PickeoPalletActivity, "Logout", Toast.LENGTH_SHORT).show()
         }
-        api = ApiClient.getApiService(this)
-        lblTitle = findViewById(R.id.lblTitle)
-        lblTitle.text = lblTitle.text.toString().replace("{type}", if(tipo == "transferir") "Transferencia" else "Desasociación")
-        palletRepository = PalletRepository(api)
-        progressBar = findViewById(R.id.progressBar)
-        transferirButton = findViewById(R.id.btnTransferir)
-        transferirButton.setOnClickListener {
+
+        binding.lblTitle.text = binding.lblTitle.text.toString()
+            .replace("{type}", if (tipo == "transferir") "Transferencia" else "Desasociación")
+
+        binding.btnTransferir.setOnClickListener {
             AlertDialog.Builder(this)
                 .setTitle("Confirmar ${if (tipo == "transferir") "transferencia" else "desasociación"}?")
                 .setMessage("¿Seguro que quieres ${if (tipo == "transferir") "transferir" else "desasociar"} este elemento?")
-                .setPositiveButton("Sí") { _, _ ->
-                    transferir()
-                }
+                .setPositiveButton("Sí") { _, _ -> viewModel.confirmarAccion() }
                 .setNegativeButton("Cancelar", null)
                 .show()
         }
         if (tipo == "desasociar") {
-            transferirButton.text = "Desasociar"
+            binding.btnTransferir.text = "Desasociar"
         }
-        palletsRecyclerView = findViewById(R.id.rvPallets)
-        palletEditText = findViewById(R.id.etPallet)
-        palletEditText.setOnEditorActionListener(createEnterListener("pallet"))
-        palletsRecyclerView.layoutManager = LinearLayoutManager(this)
-        palletAdapter = PalletAdapter(palletsList)
-        palletsRecyclerView.adapter = palletAdapter
+
+        binding.etPallet.setOnEditorActionListener(createEnterListener())
+        binding.rvPallets.layoutManager = LinearLayoutManager(this)
+        palletAdapter = PalletAdapter(viewModel.palletsList)
+        binding.rvPallets.adapter = palletAdapter
         val itemTouchHelper = ItemTouchHelper(itemTouchHelperCallback)
-        itemTouchHelper.attachToRecyclerView(palletsRecyclerView)
+        itemTouchHelper.attachToRecyclerView(binding.rvPallets)
+    }
+
+    private fun render(state: PickeoPalletUiState) {
+        binding.progressBar.visibility = if (state.isLoading) View.VISIBLE else View.GONE
+    }
+
+    private fun handleEvent(event: PickeoPalletEvent) {
+        when (event) {
+            is PickeoPalletEvent.ShowToast -> Toast.makeText(this, event.message, Toast.LENGTH_LONG).show()
+            is PickeoPalletEvent.ListChanged -> {
+                palletAdapter.notifyDataSetChanged()
+                binding.etPallet.text.clear()
+                binding.etPallet.requestFocus()
+            }
+        }
     }
 
     private fun logout() {
-        val sharedPreferences: SharedPreferences = getSharedPreferences("user_prefs", MODE_PRIVATE)
-        sharedPreferences.edit() { remove("isLoggedIn") }
-
+        viewModel.logout()
         val intent = Intent(this, LoginActivity::class.java)
         startActivity(intent)
         finish()
     }
 
-    private fun createEnterListener(type: String): TextView.OnEditorActionListener {
+    private fun createEnterListener(): TextView.OnEditorActionListener {
         return TextView.OnEditorActionListener { v, actionId, event ->
             if (actionId == EditorInfo.IME_ACTION_DONE || actionId == 5 ||
                 (event?.keyCode == KeyEvent.KEYCODE_ENTER && event.action == KeyEvent.ACTION_DOWN)
             ) {
-                when (type) {
-                    "pallet" -> coroutinePallet()
-                }
+                viewModel.buscarPallet(binding.etPallet.text.toString())
                 v.clearFocus()
                 val imm = getSystemService(InputMethodManager::class.java)
                 imm.hideSoftInputFromWindow(v.windowToken, 0)
                 return@OnEditorActionListener true
             }
             false
-        }
-    }
-
-    private fun coroutinePallet() {
-        if (isPalletRequestInProgress) return
-
-        progressBar.visibility = View.VISIBLE
-        isPalletRequestInProgress = true
-
-        lifecycleScope.launch {
-            try {
-                val palletCode = palletEditText.text.toString()
-                val pallet = palletRepository.getPalletWithProducts(palletCode)
-                handlePallet(pallet)
-            } catch (h: HttpException) {
-                Toast.makeText(this@PickeoPalletActivity, "Error HTTP.\n${h.apiMessage()}", Toast.LENGTH_LONG).show()
-            } catch (i: IOException) {
-                Toast.makeText(this@PickeoPalletActivity, "Error de conexion.\n${i.message}", Toast.LENGTH_LONG).show()
-            } catch (e: Exception) {
-                Toast.makeText(this@PickeoPalletActivity, "Error al obtener datos.\n${e.message}", Toast.LENGTH_LONG).show()
-            } finally {
-                progressBar.visibility = View.GONE
-                isPalletRequestInProgress = false
-            }
-        }
-    }
-
-    private fun handlePallet(pallet: Pallet) {
-        try {
-            val products = pallet.Products ?: return
-            if (products.isEmpty()) {
-                Toast.makeText(this@PickeoPalletActivity, "El pallet no tiene productos asociados.", Toast.LENGTH_LONG).show()
-                return
-            }
-            if (palletsList.contains(pallet)) {
-                Toast.makeText(this@PickeoPalletActivity, "Pallet ya pickeado.", Toast.LENGTH_LONG).show()
-                return
-            }
-
-            if (tipo == "transferir") {
-                if (pallet.transferir) {
-                    Toast.makeText(
-                        this@PickeoPalletActivity,
-                        "Pallet ya transferido.",
-                        Toast.LENGTH_LONG
-                    ).show()
-                    return
-                }
-            }
-
-            palletsList.add(pallet)
-        }
-        catch (e: Exception) {
-            Toast.makeText(this@PickeoPalletActivity, "Error al obtener datos.\n${e.message}", Toast.LENGTH_LONG).show()
-        }
-        finally {
-            palletAdapter.notifyDataSetChanged()
-            palletEditText.text.clear()
-            palletEditText.requestFocus()
-        }
-    }
-
-
-    private fun transferir() {
-        if (isPalletRequestInProgress) {
-            Toast.makeText(this@PickeoPalletActivity, "Ya hay una transferencia en curso.", Toast.LENGTH_LONG).show()
-            return
-        }
-
-        if (palletsList.isEmpty()) {
-            Toast.makeText(this@PickeoPalletActivity, "No hay pallets seleccionados.", Toast.LENGTH_LONG).show()
-            return
-        }
-
-        isPalletRequestInProgress = true
-        progressBar.visibility = View.VISIBLE
-
-        lifecycleScope.launch {
-            try {
-                var response: Response<Unit> = Response.success(Unit)
-
-                if (tipo == "transferir") {
-                    response = api.postPalletTransfer(palletsList)
-                } else if (tipo == "desasociar") {
-                    palletsList.forEach { pallet ->
-                        pallet.Products?.forEach { product ->
-                            product.deleted = true
-                        }
-                        response = api.postPalletProducts(pallet)
-                    }
-                } else {
-                    return@launch
-                }
-
-                if (response.isSuccessful) {
-                    var message = ""
-                    if (tipo == "transferir") {
-                        message = "Transferencia"
-                    } else if (tipo == "desasociar") {
-                        message = "Desasociación"
-                    }
-                    Toast.makeText(this@PickeoPalletActivity, "${message} exitosa.", Toast.LENGTH_LONG).show()
-                    palletsList.clear()
-                    palletAdapter.notifyDataSetChanged()
-                    palletEditText.text.clear()
-                    palletEditText.requestFocus()
-                }
-            }
-            catch (e: Exception) {
-                Toast.makeText(this@PickeoPalletActivity, "Error.\n${e.message}", Toast.LENGTH_LONG).show()
-            }
-            finally {
-                isPalletRequestInProgress = false
-                progressBar.visibility = View.GONE
-            }
         }
     }
 }

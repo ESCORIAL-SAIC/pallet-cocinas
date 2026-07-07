@@ -1,4 +1,4 @@
-package com.escorial.pallet_cocinas
+package com.escorial.pallet_cocinas.data.remote
 
 import android.content.Context
 import retrofit2.Retrofit

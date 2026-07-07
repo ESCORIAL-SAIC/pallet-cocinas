@@ -1,5 +1,9 @@
-package com.escorial.pallet_cocinas
+package com.escorial.pallet_cocinas.data.remote
 
+import com.escorial.pallet_cocinas.data.model.Login
+import com.escorial.pallet_cocinas.data.model.Pallet
+import com.escorial.pallet_cocinas.data.model.Product
+import com.escorial.pallet_cocinas.data.model.loginResponse
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
