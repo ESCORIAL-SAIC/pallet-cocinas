@@ -193,11 +193,12 @@ class AsociarProductoActivity : AppCompatActivity() {
         val ean = eanEditText.text.toString()
         if (ean.isEmpty()) {
             Toast.makeText(this@AsociarProductoActivity, "Debe escanear el EAN", Toast.LENGTH_LONG).show()
-            eanEditText.requestFocus()
+            // Se posterga para no ser pisado por el clearFocus() síncrono del listener.
+            eanEditText.post { eanEditText.requestFocus() }
             return
         }
         // El EAN se enviará al hacer el pickeo del serial; no se fija currentEan todavía.
-        productEditText.requestFocus()
+        productEditText.post { productEditText.requestFocus() }
     }
 
     private fun coroutineProduct() {
@@ -238,12 +239,15 @@ class AsociarProductoActivity : AppCompatActivity() {
             } catch (h: HttpException) {
                 Toast.makeText(this@AsociarProductoActivity, "Error HTTP\n${h.apiMessage()}", Toast.LENGTH_LONG).show()
                 Log.d("API_ERROR", "Error HTTP. ${h.message}")
+                productEditText.requestFocus()
             } catch (i: IOException) {
                 Toast.makeText(this@AsociarProductoActivity, "Error de conexion.", Toast.LENGTH_LONG).show()
                 Log.d("API_ERROR", "Error de conexion. ${i.message}")
+                productEditText.requestFocus()
             } catch (e: Exception) {
                 Toast.makeText(this@AsociarProductoActivity, "Error al obtener datos.", Toast.LENGTH_LONG).show()
                 Log.d("API_ERROR", "Error al obtener datos. ${e.message}")
+                productEditText.requestFocus()
             }
             finally {
                 progressBar.visibility = View.GONE
@@ -302,10 +306,13 @@ class AsociarProductoActivity : AppCompatActivity() {
                 handlePallet(pallet)
             } catch (h: HttpException) {
                 Toast.makeText(this@AsociarProductoActivity, "Error HTTP.\n${h.apiMessage()}", Toast.LENGTH_LONG).show()
+                palletEditText.requestFocus()
             } catch (i: IOException) {
                 Toast.makeText(this@AsociarProductoActivity, "Error de conexion.\n${i.message}", Toast.LENGTH_LONG).show()
+                palletEditText.requestFocus()
             } catch (e: Exception) {
                 Toast.makeText(this@AsociarProductoActivity, "Error al obtener datos.\n${e.message}", Toast.LENGTH_LONG).show()
+                palletEditText.requestFocus()
             } finally {
                 progressBar.visibility = View.GONE
                 isPalletRequestInProgress = false
@@ -353,8 +360,10 @@ class AsociarProductoActivity : AppCompatActivity() {
             eanEditText.isEnabled = true
             eanEditText.text.clear()
             currentEan = null
+            eanEditText.requestFocus()
+        } else {
+            productEditText.requestFocus()
         }
-        productEditText.requestFocus()
     }
 
     private fun submit() {
