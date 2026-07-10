@@ -318,16 +318,22 @@ class AsociarProductoActivity : AppCompatActivity() {
             for (product in pallet.Products)
                 productsList.add(product)
             productAdapter.notifyDataSetChanged()
+            // selectedProductType se fija de forma sincrónica porque el callback del
+            // spinner (onItemSelected tras setSelection) es asíncrono y un serial escaneado
+            // en esa ventana se procesaría con el tipo anterior.
             if (pallet.Products?.firstOrNull()?.type == "COCINA") {
+                selectedProductType = "COCINA"
                 productSpinner.setSelection(0)
                 productSpinner.isEnabled = false
             }
             else if (pallet.Products?.firstOrNull()?.type == "TERMOTANQUE") {
+                selectedProductType = "TERMO/CALEFON"
                 productSpinner.setSelection(1)
                 productSpinner.isEnabled = false
             }
             // ASUNCIÓN: el literal "IMPORTADO" del campo type viene del backend; verificar.
             else if (pallet.Products?.firstOrNull()?.type == "IMPORTADO") {
+                selectedProductType = "IMPORTADO"
                 productSpinner.setSelection(2)
                 productSpinner.isEnabled = false
             }
@@ -486,23 +492,28 @@ class AsociarProductoActivity : AppCompatActivity() {
     private fun configProductSpinner() {
         val options2 = resources.getStringArray(R.array.tipo_producto)
         val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, options2)
-        val position = prefs.getString("selectedProductIndex", 0.toString())!!.toInt()
-        productSpinner.setSelection(position)
         adapter.setDropDownViewResource(R.layout.product_dropdown_item)
 
+        val position = prefs.getString("selectedProductIndex", 0.toString())!!.toInt()
+
+        // El tipo se inicializa de forma sincrónica desde prefs; el callback del spinner
+        // es asíncrono y no debe ser la única fuente de verdad al restaurar estado.
+        selectedProductType = options2.getOrElse(position) { options2[0] }
+
+        // El adapter debe asignarse ANTES de setSelection: asignarlo resetea la selección
+        // a 0, por lo que la selección persistida debe fijarse después.
         productSpinner.adapter = adapter
+        productSpinner.setSelection(position)
+
         productSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
                 val selectedOption = parent.getItemAtPosition(position).toString()
-                Toast.makeText(this@AsociarProductoActivity, "Seleccionaste: $selectedOption", Toast.LENGTH_SHORT).show()
                 selectedProductType = selectedOption
                 prefs.edit { putString("selectedProductIndex", position.toString()) }
-                productSpinner.setSelection(prefs.getString("selectedProductIndex", 0.toString())!!.toInt())
                 updateEanVisibility()
             }
 
             override fun onNothingSelected(parent: AdapterView<*>) {
-                Toast.makeText(this@AsociarProductoActivity, "No seleccionaste nada", Toast.LENGTH_SHORT).show()
             }
         }
     }
