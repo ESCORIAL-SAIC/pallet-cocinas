@@ -104,6 +104,32 @@
 
             </LinearLayout>
             <LinearLayout
+                android:id="@+id/eanLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:layout_marginLeft="10dp"
+                    android:text="EAN"/>
+
+                <EditText
+                    android:id="@+id/eanEditText"
+                    android:layout_width="match_parent"
+                    android:layout_height="35dp"
+                    android:ems="10"
+                    android:layout_margin="4dp"
+                    android:paddingLeft="10dp"
+                    android:hint=""
+                    android:inputType="number"
+                    android:background="@drawable/rounded_input_text"
+                    />
+            </LinearLayout>
+            <LinearLayout
                 android:id="@+id/productLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
