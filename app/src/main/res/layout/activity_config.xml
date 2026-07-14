@@ -1,105 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@drawable/login_background"
+    android:fillViewport="true">
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
+        android:gravity="center"
         android:orientation="vertical"
-        android:padding="24dp">
+        android:padding="20dp">
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:textSize="24dp"
-            android:layout_marginBottom="20dp"
-            android:text="Configuracion"
-            />
-
-        <!-- Admin contraseña -->
-        <LinearLayout
-            android:id="@+id/layoutPassword"
+        <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            app:cardBackgroundColor="@android:color/white"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="6dp">
 
-            <EditText
-                android:id="@+id/etPassword"
-                android:layout_width="match_parent"
-                android:layout_height="35dp"
-                android:ems="10"
-                android:paddingLeft="10dp"
-                android:layout_marginBottom="5dp"
-                android:background="@drawable/rounded_input_text"
-                android:hint="Contraseña"
-                android:inputType="textPassword" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:text="Ingresar Contraseña para acceder a la Configuracion"
-                />
-
-            <Button
-                android:id="@+id/btnValidar"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="20dp"
-                android:text="Acceder"
-                android:layout_marginTop="16dp"/>
-        </LinearLayout>
+                android:orientation="vertical"
+                android:padding="24dp">
 
-        <!-- Config -->
-        <LinearLayout
-            android:id="@+id/layoutConfig"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
+                <!-- Botón cerrar (oculto en primer arranque) -->
+                <androidx.appcompat.widget.AppCompatImageButton
+                    android:id="@+id/btnCancelar"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:layout_gravity="end"
+                    android:background="@drawable/remove_button_bk"
+                    android:contentDescription="Cerrar"
+                    android:scaleType="center"
+                    android:src="@drawable/ic_close_pallet_foreground"
+                    android:tint="@android:color/white" />
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:text="URL de la API"
-                />
+                <!-- Logo -->
+                <ImageView
+                    android:id="@+id/imageViewLogo"
+                    android:layout_width="match_parent"
+                    android:layout_height="90dp"
+                    android:layout_marginTop="4dp"
+                    android:contentDescription="Logo"
+                    android:src="@drawable/login_logo" />
 
-            <EditText
-                android:id="@+id/etApiUrl"
-                android:layout_width="match_parent"
-                android:layout_height="35dp"
-                android:ems="10"
-                android:paddingLeft="10dp"
-                android:background="@drawable/rounded_input_text"
-                android:hint="URL de la API"
-                android:inputType="textUri"
-                android:layout_marginTop="5dp" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="16dp"
+                    android:text="Configuración"
+                    android:textColor="@color/colorPrimary"
+                    android:textSize="24sp"
+                    android:textStyle="bold" />
 
-            <Button
-                android:id="@+id/btnGuardar"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="20dp"
-                android:text="Guardar"
-                android:layout_marginTop="16dp"/>
+                <!-- Admin contraseña -->
+                <LinearLayout
+                    android:id="@+id/layoutPassword"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
 
-            <ProgressBar
-                android:id="@+id/progressBarConfig"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:visibility="gone" />
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="24dp"
+                        android:text="Ingresá la contraseña para acceder a la configuración"
+                        android:textColor="#666666"
+                        android:textSize="14sp" />
 
-        </LinearLayout>
+                    <EditText
+                        android:id="@+id/etPassword"
+                        android:layout_width="match_parent"
+                        android:layout_height="50dp"
+                        android:layout_marginTop="12dp"
+                        android:background="@drawable/input_text_login"
+                        android:hint="Contraseña"
+                        android:inputType="textPassword"
+                        android:paddingStart="18dp"
+                        android:paddingEnd="18dp" />
 
-        <androidx.appcompat.widget.AppCompatImageButton
-            android:id="@+id/btnCancelar"
-            android:layout_width="35dp"
-            android:layout_height="35dp"
-            android:layout_margin="4dp"
-            android:layout_gravity="center"
-            android:background="@drawable/remove_button_bk"
-            android:src="@drawable/ic_close_pallet_foreground"
-            android:scaleType="center"
-            android:tint="@android:color/white" />
+                    <Button
+                        android:id="@+id/btnValidar"
+                        style="@style/Widget.MaterialComponents.Button"
+                        android:layout_width="match_parent"
+                        android:layout_height="50dp"
+                        android:layout_marginTop="20dp"
+                        android:backgroundTint="@color/colorPrimary"
+                        android:text="Acceder"
+                        android:textColor="@android:color/white"
+                        app:cornerRadius="12dp" />
+                </LinearLayout>
+
+                <!-- Config URL -->
+                <LinearLayout
+                    android:id="@+id/layoutConfig"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="24dp"
+                        android:text="URL de la API"
+                        android:textColor="@color/colorPrimary"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+
+                    <EditText
+                        android:id="@+id/etApiUrl"
+                        android:layout_width="match_parent"
+                        android:layout_height="50dp"
+                        android:layout_marginTop="12dp"
+                        android:background="@drawable/input_text_login"
+                        android:hint="http://192.168.1.1:8080"
+                        android:inputType="textUri"
+                        android:maxLines="1"
+                        android:paddingStart="18dp"
+                        android:paddingEnd="18dp" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="Ingresá la dirección completa del servidor, incluyendo http:// o https://"
+                        android:textColor="#666666"
+                        android:textSize="13sp" />
+
+                    <Button
+                        android:id="@+id/btnGuardar"
+                        style="@style/Widget.MaterialComponents.Button"
+                        android:layout_width="match_parent"
+                        android:layout_height="50dp"
+                        android:layout_marginTop="20dp"
+                        android:backgroundTint="@color/colorPrimary"
+                        android:text="Guardar"
+                        android:textColor="@android:color/white"
+                        app:cornerRadius="12dp" />
+
+                    <ProgressBar
+                        android:id="@+id/progressBarConfig"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_marginTop="16dp"
+                        android:visibility="gone" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
 
     </LinearLayout>
 </ScrollView>
