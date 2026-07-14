@@ -6,13 +6,22 @@ import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.LinearLayout
+import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatImageButton
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 
 class ConfigActivity : AppCompatActivity() {
 
+    companion object {
+        const val EXTRA_FIRST_RUN = "first_run"
+    }
+
     private val contraseñaCorrecta = "Aria9278"
+
+    private val urlDefault = "http://0.0.0.0"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -26,11 +35,23 @@ class ConfigActivity : AppCompatActivity() {
         val etApiUrl = findViewById<EditText>(R.id.etApiUrl)
         val btnGuardar = findViewById<Button>(R.id.btnGuardar)
         val btnCancelar = findViewById<AppCompatImageButton>(R.id.btnCancelar)
+        val progressBar = findViewById<ProgressBar>(R.id.progressBarConfig)
 
         val prefs = getSharedPreferences("configuracion", Context.MODE_PRIVATE)
 
+        val firstRun = intent.getBooleanExtra(EXTRA_FIRST_RUN, false)
+
         // Ocultar el layout de configuración hasta validar
         layoutConfig.visibility = View.GONE
+
+        if (firstRun) {
+            // Primer arranque: sin contraseña y sin poder salir hasta configurar.
+            layoutPassword.visibility = View.GONE
+            layoutConfig.visibility = View.VISIBLE
+            btnCancelar.visibility = View.GONE
+            val urlActual = prefs.getString("api_url", "") ?: ""
+            etApiUrl.setText(if (urlActual == urlDefault) "" else urlActual)
+        }
 
         btnValidar.setOnClickListener {
             if (etPassword.text.toString() == contraseñaCorrecta) {
@@ -43,14 +64,46 @@ class ConfigActivity : AppCompatActivity() {
         }
 
         btnGuardar.setOnClickListener {
-            val nuevaUrl = etApiUrl.text.toString()
-            prefs.edit().putString("api_url", nuevaUrl).apply()
-            Toast.makeText(this, "Configuración guardada", Toast.LENGTH_SHORT).show()
-            finish()
+            val nuevaUrl = etApiUrl.text.toString().trim()
+            if (nuevaUrl.isEmpty() ||
+                !(nuevaUrl.startsWith("http://") || nuevaUrl.startsWith("https://"))
+            ) {
+                Toast.makeText(
+                    this,
+                    "Ingrese una URL válida (http:// o https://)",
+                    Toast.LENGTH_SHORT
+                ).show()
+                return@setOnClickListener
+            }
+
+            progressBar.visibility = View.VISIBLE
+            btnGuardar.isEnabled = false
+
+            lifecycleScope.launch {
+                val ok = ApiClient.checkHealth(nuevaUrl)
+                if (ok) {
+                    prefs.edit().putString("api_url", nuevaUrl).apply()
+                    Toast.makeText(this@ConfigActivity, "Configuración guardada", Toast.LENGTH_SHORT).show()
+                    finish()
+                } else {
+                    Toast.makeText(this@ConfigActivity, "La URL de la API es incorrecta", Toast.LENGTH_LONG).show()
+                    progressBar.visibility = View.GONE
+                    btnGuardar.isEnabled = true
+                }
+            }
         }
 
         btnCancelar.setOnClickListener {
             finish()
         }
+    }
+
+    override fun onBackPressed() {
+        // En primer arranque el usuario no puede salir sin configurar la URL.
+        if (intent.getBooleanExtra(EXTRA_FIRST_RUN, false)) {
+            Toast.makeText(this, "Debe configurar la URL de la API", Toast.LENGTH_SHORT).show()
+            return
+        }
+        super.onBackPressed()
     }
 }

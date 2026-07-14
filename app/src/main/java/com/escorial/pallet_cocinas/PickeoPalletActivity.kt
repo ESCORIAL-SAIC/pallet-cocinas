@@ -38,9 +38,10 @@ class PickeoPalletActivity : AppCompatActivity() {
     lateinit var palletEditText: EditText
     lateinit var palletsRecyclerView: RecyclerView
     lateinit var progressBar: ProgressBar
-    lateinit var api: ApiService
+    // Getters para releer siempre la URL vigente (puede cambiar vía config in-app).
+    val api get() = ApiClient.getApiService(this)
     var palletsList: ArrayList<Pallet> = ArrayList()
-    lateinit var palletRepository: PalletRepository
+    val palletRepository get() = PalletRepository(api)
     lateinit var palletAdapter: PalletAdapter
     lateinit var tipo: String
 
@@ -127,10 +128,12 @@ class PickeoPalletActivity : AppCompatActivity() {
             logout()
             Toast.makeText(this@PickeoPalletActivity, "Logout", Toast.LENGTH_SHORT).show()
         }
-        api = ApiClient.getApiService(this)
+        topBar.setConfigButtonVisibility(true)
+        topBar.setOnConfigClickListener {
+            startActivity(Intent(this@PickeoPalletActivity, ConfigActivity::class.java))
+        }
         lblTitle = findViewById(R.id.lblTitle)
         lblTitle.text = lblTitle.text.toString().replace("{type}", if(tipo == "transferir") "Transferencia" else "Desasociación")
-        palletRepository = PalletRepository(api)
         progressBar = findViewById(R.id.progressBar)
         transferirButton = findViewById(R.id.btnTransferir)
         transferirButton.setOnClickListener {

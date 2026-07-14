@@ -35,6 +35,14 @@ class LoginActivity : AppCompatActivity() {
 
         loadControls()
 
+        if (!ApiClient.isConfigured(this)) {
+            startActivity(
+                Intent(this, ConfigActivity::class.java)
+                    .putExtra(ConfigActivity.EXTRA_FIRST_RUN, true)
+            )
+            return
+        }
+
         val isLoggedIn = sharedPreferences.getBoolean("isLoggedIn", false)
 
         if (isLoggedIn) {
