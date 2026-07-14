@@ -8,6 +8,16 @@ on:
         type: string
         required: false
         default: android-apk
+      current_version_code:
+        description: Si se pasa (solo releases estables de main), fija CurrentVersionCode (versión recomendada) en el metadata
+        type: string
+        required: false
+        default: ''
+      current_version:
+        description: Si se pasa, fija CurrentVersion (nombre de versión) en el metadata
+        type: string
+        required: false
+        default: ''
 
 concurrency:
   group: fdroid-publish
@@ -72,6 +82,31 @@ jobs:
           grep -q '^apksigner:' config.yml || echo "apksigner: /usr/bin/apksigner" >> config.yml
 
           printf '%s' "${{ secrets.ORG_ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > my-release-key.keystore
+
+          # Fijar la versión recomendada SOLO cuando el caller la pasa (pipeline de main =
+          # release estable). dev no la pasa, así que el prerelease no toca este puntero.
+          # Debe hacerse ANTES de 'fdroid update' para que el índice regenerado la refleje.
+          CURRENT_VERSION_CODE="${{ inputs.current_version_code }}"
+          CURRENT_VERSION="${{ inputs.current_version }}"
+          META="metadata/com.escorial.pallet_cocinas.yml"
+          if [ -n "$CURRENT_VERSION_CODE" ] && [ -f "$META" ]; then
+            if grep -q '^CurrentVersionCode:' "$META"; then
+              sed -i "s/^CurrentVersionCode:.*/CurrentVersionCode: ${CURRENT_VERSION_CODE}/" "$META"
+            else
+              echo "CurrentVersionCode: ${CURRENT_VERSION_CODE}" >> "$META"
+            fi
+            if [ -n "$CURRENT_VERSION" ]; then
+              if grep -q '^CurrentVersion:' "$META"; then
+                sed -i "s/^CurrentVersion:.*/CurrentVersion: '${CURRENT_VERSION}'/" "$META"
+              else
+                echo "CurrentVersion: '${CURRENT_VERSION}'" >> "$META"
+              fi
+            fi
+            echo "✅ Versión recomendada fijada en metadata: CurrentVersionCode=${CURRENT_VERSION_CODE} CurrentVersion=${CURRENT_VERSION}"
+          else
+            echo "ℹ️ Sin cambio de versión recomendada (no se pasó current_version_code; ej. publicación desde dev)"
+          fi
+
           fdroid update -c
 
       - name: Commit y push de cambios
