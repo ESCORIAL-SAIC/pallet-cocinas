@@ -43,6 +43,10 @@ class ExpedicionActivity : AppCompatActivity() {
             logout()
             Toast.makeText(this@ExpedicionActivity, "Logout", Toast.LENGTH_SHORT).show()
         }
+        topBar.setConfigButtonVisibility(true)
+        topBar.setOnConfigClickListener {
+            startActivity(Intent(this@ExpedicionActivity, ConfigActivity::class.java))
+        }
         btnTransferir = findViewById(R.id.btnTransferir)
         btnDesasociar = findViewById(R.id.btnDesasociar)
         btnDesasociar.setOnClickListener { startPickeoPalletActivity("desasociar") }

@@ -14,6 +14,7 @@ class TopBar(context: Context, attrs: AttributeSet) : LinearLayout(context, attr
     private val usernameLabel: TextView
     private val completeNameLabel: TextView
     private val logoutButton: View
+    private val configButton: View
 
     init {
         LayoutInflater.from(context).inflate(R.layout.top_bar, this, true)
@@ -21,6 +22,7 @@ class TopBar(context: Context, attrs: AttributeSet) : LinearLayout(context, attr
         usernameLabel = findViewById(R.id.usernameLabel)
         completeNameLabel = findViewById(R.id.completeNameLabel)
         logoutButton = findViewById(R.id.logoutButton)
+        configButton = findViewById(R.id.configButton)
     }
 
     fun setUserInfo(username: String?, completeName: String?) {
@@ -37,5 +39,13 @@ class TopBar(context: Context, attrs: AttributeSet) : LinearLayout(context, attr
 
     fun setOnLogoutClickListener(listener: OnClickListener) {
         logoutButton.setOnClickListener(listener)
+    }
+
+    fun setConfigButtonVisibility(isVisible: Boolean) {
+        configButton.isVisible = isVisible
+    }
+
+    fun setOnConfigClickListener(listener: OnClickListener) {
+        configButton.setOnClickListener(listener)
     }
 }

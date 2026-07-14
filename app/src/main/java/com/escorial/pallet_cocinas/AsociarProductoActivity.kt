@@ -53,9 +53,10 @@ class AsociarProductoActivity : AppCompatActivity() {
     lateinit var progressBar: ProgressBar
     lateinit var changePalletButton: AppCompatImageButton
 
-    lateinit var api: ApiService
+    // Getters para releer siempre la URL vigente (puede cambiar vía config in-app).
+    val api get() = ApiClient.getApiService(this)
 
-    lateinit var palletRepository: PalletRepository
+    val palletRepository get() = PalletRepository(api)
 
     var productsList: ArrayList<Product> = ArrayList()
     lateinit var pickeadosTextView: TextView
@@ -155,6 +156,10 @@ class AsociarProductoActivity : AppCompatActivity() {
         topBar.setOnLogoutClickListener  {
             logout()
             Toast.makeText(this@AsociarProductoActivity, "Logout", Toast.LENGTH_SHORT).show()
+        }
+        topBar.setConfigButtonVisibility(true)
+        topBar.setOnConfigClickListener {
+            startActivity(Intent(this@AsociarProductoActivity, ConfigActivity::class.java))
         }
 
         productEditText.setOnEditorActionListener(createEnterListener("product"))
@@ -419,9 +424,6 @@ class AsociarProductoActivity : AppCompatActivity() {
     private fun loadControls() {
         Log.d("LoadControls", "Loading controls")
         prefs = getSharedPreferences("user_prefs", MODE_PRIVATE)
-
-        api = ApiClient.getApiService(this)
-        palletRepository = PalletRepository(api)
 
         progressBar = findViewById(R.id.progressBar)
         palletEditText = findViewById(R.id.palletEditText)
