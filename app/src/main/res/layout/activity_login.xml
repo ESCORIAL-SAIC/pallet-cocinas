@@ -106,7 +106,15 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
         android:id="@+id/tvVersionCode"
-        android:text="Ver.: {0} (Comp.: {1})" />
+        android:text="@string/version_info" />
+
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:id="@+id/tvApiVersion"
+        android:text="@string/api_version_loading" />
 
 
     <androidx.appcompat.widget.AppCompatImageButton

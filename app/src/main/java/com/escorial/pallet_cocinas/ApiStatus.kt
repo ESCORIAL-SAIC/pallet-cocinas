@@ -1,5 +1,10 @@
 package com.escorial.pallet_cocinas
 
+/** Respuesta de GET /version */
+data class VersionResponse(
+    val version: String?
+)
+
 /** Respuesta de GET /health/ready */
 data class HealthResponse(
     val status: String?,

@@ -7,6 +7,9 @@ import retrofit2.http.Query
 import retrofit2.Response
 
 interface ApiService {
+    @GET("version")
+    suspend fun getVersion(): VersionResponse
+
     @GET("health/ready")
     suspend fun getHealthReady(): Response<HealthResponse>
 

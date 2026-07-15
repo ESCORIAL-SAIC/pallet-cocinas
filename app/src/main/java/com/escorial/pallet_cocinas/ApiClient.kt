@@ -73,6 +73,17 @@ object ApiClient {
         }
     }
 
+    /** Versión reportada por GET /version, o null si no se pudo obtener. */
+    suspend fun getApiVersion(context: Context): String? = withContext(Dispatchers.IO) {
+        try {
+            getApiService(context).getVersion().version
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            null
+        }
+    }
+
     private fun buildService(baseUrl: String): ApiService =
         Retrofit.Builder()
             .baseUrl(baseUrl)
