@@ -80,15 +80,38 @@ class ConfigActivity : AppCompatActivity() {
             btnGuardar.isEnabled = false
 
             lifecycleScope.launch {
-                val ok = ApiClient.checkHealth(nuevaUrl)
-                if (ok) {
-                    prefs.edit().putString("api_url", nuevaUrl).apply()
-                    Toast.makeText(this@ConfigActivity, "Configuración guardada", Toast.LENGTH_SHORT).show()
-                    finish()
-                } else {
-                    Toast.makeText(this@ConfigActivity, "La URL de la API es incorrecta", Toast.LENGTH_LONG).show()
-                    progressBar.visibility = View.GONE
-                    btnGuardar.isEnabled = true
+                val result = ApiClient.checkHealth(nuevaUrl)
+                when {
+                    result.healthy -> {
+                        prefs.edit().putString("api_url", nuevaUrl).apply()
+                        val versionMsg = result.version?.let { " (API v$it)" } ?: ""
+                        Toast.makeText(
+                            this@ConfigActivity,
+                            "Configuración guardada$versionMsg",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        finish()
+                    }
+                    result.reachable -> {
+                        // El servidor responde pero no está listo (p. ej. base de datos caída).
+                        val versionMsg = result.version?.let { "API v$it " } ?: ""
+                        Toast.makeText(
+                            this@ConfigActivity,
+                            "${versionMsg}accesible pero no está lista. Revise el servidor o la base de datos.",
+                            Toast.LENGTH_LONG
+                        ).show()
+                        progressBar.visibility = View.GONE
+                        btnGuardar.isEnabled = true
+                    }
+                    else -> {
+                        Toast.makeText(
+                            this@ConfigActivity,
+                            "La URL de la API es incorrecta o el servidor no responde",
+                            Toast.LENGTH_LONG
+                        ).show()
+                        progressBar.visibility = View.GONE
+                        btnGuardar.isEnabled = true
+                    }
                 }
             }
         }

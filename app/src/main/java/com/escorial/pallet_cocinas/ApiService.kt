@@ -7,6 +7,9 @@ import retrofit2.http.Query
 import retrofit2.Response
 
 interface ApiService {
+    @GET("health/ready")
+    suspend fun getHealthReady(): Response<HealthResponse>
+
     @GET("api/pallets")
     suspend fun getPallet(@Query("numero") numero: String): Pallet
 

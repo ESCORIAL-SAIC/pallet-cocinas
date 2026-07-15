@@ -1,10 +1,11 @@
 package com.escorial.pallet_cocinas
 
 import android.content.Context
+import com.google.gson.Gson
+import com.google.gson.JsonSyntaxException
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import retrofit2.HttpException
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.io.IOException
@@ -35,31 +36,56 @@ object ApiClient {
         return !baseUrl.isNullOrEmpty() && baseUrl != DEFAULT_URL
     }
 
-    suspend fun checkHealth(baseUrl: String): Boolean = withContext(Dispatchers.IO) {
+    /**
+     * Chequea la disponibilidad de la API contra GET /health/ready.
+     *
+     * Distingue tres situaciones:
+     * - no alcanzable (la URL no apunta a la API o el servidor no responde),
+     * - alcanzable pero no lista (p. ej. base de datos caída → 503),
+     * - sana (200 + "Healthy").
+     * De paso obtiene la versión que reporta el endpoint.
+     */
+    suspend fun checkHealth(baseUrl: String): HealthCheckResult = withContext(Dispatchers.IO) {
         // Retrofit descartable: no toca el singleton ni persiste nada.
         val service = try {
-            Retrofit.Builder()
-                .baseUrl(baseUrl)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build()
-                .create(ApiService::class.java)
+            buildService(baseUrl)
         } catch (e: IllegalArgumentException) {
-            return@withContext false
+            return@withContext HealthCheckResult(reachable = false, healthy = false, version = null)
         }
 
         try {
-            service.getPallet("0")
-            true
-        } catch (h: HttpException) {
-            // El servidor respondió (aunque con error HTTP): la URL es válida.
-            true
+            val response = service.getHealthReady()
+            // En 503 el cuerpo válido viaja en errorBody(); lo parseamos igual
+            // para poder mostrar la versión aunque la API no esté lista.
+            val body = response.body() ?: parseHealthBody(response.errorBody()?.string())
+            val healthy = response.isSuccessful &&
+                body?.status.equals("Healthy", ignoreCase = true)
+            HealthCheckResult(reachable = true, healthy = healthy, version = body?.version)
         } catch (e: IOException) {
-            false
+            // No se pudo establecer conexión: la URL no apunta a la API.
+            HealthCheckResult(reachable = false, healthy = false, version = null)
         } catch (e: CancellationException) {
             // Re-lanzar para no romper structured concurrency si se cancela la corrutina.
             throw e
         } catch (e: Exception) {
-            false
+            // El servidor respondió algo inesperado: alcanzable, pero no sano.
+            HealthCheckResult(reachable = true, healthy = false, version = null)
+        }
+    }
+
+    private fun buildService(baseUrl: String): ApiService =
+        Retrofit.Builder()
+            .baseUrl(baseUrl)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(ApiService::class.java)
+
+    private fun parseHealthBody(json: String?): HealthResponse? {
+        if (json.isNullOrBlank()) return null
+        return try {
+            Gson().fromJson(json, HealthResponse::class.java)
+        } catch (e: JsonSyntaxException) {
+            null
         }
     }
 }
