@@ -42,6 +42,20 @@
             android:visibility="gone" />
     </LinearLayout>
 
+    <!-- Config Button -->
+    <ImageButton
+        android:id="@+id/configButton"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_gravity="end"
+        android:background="@color/colorPrimary"
+        android:visibility="gone"
+        android:textColor="@android:color/white"
+        android:src="@drawable/ic_config_foreground"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="10dp"
+        app:tint="@color/white" />
+
     <!-- Logout Button -->
     <ImageButton
         android:id="@+id/logoutButton"

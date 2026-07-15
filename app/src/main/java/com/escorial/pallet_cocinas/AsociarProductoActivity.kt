@@ -44,15 +44,19 @@ class AsociarProductoActivity : AppCompatActivity() {
     lateinit var productsRecyclerView: RecyclerView
     lateinit var productAdapter: ProductAdapter
     lateinit var productEditText: EditText
+    lateinit var eanEditText: EditText
+    lateinit var eanLayout: android.widget.LinearLayout
+    private var currentEan: String? = null
     lateinit var palletEditText: EditText
     lateinit var productSpinner: Spinner
     lateinit var submitButton: Button
     lateinit var progressBar: ProgressBar
     lateinit var changePalletButton: AppCompatImageButton
 
-    lateinit var api: ApiService
+    // Getters para releer siempre la URL vigente (puede cambiar vía config in-app).
+    val api get() = ApiClient.getApiService(this)
 
-    lateinit var palletRepository: PalletRepository
+    val palletRepository get() = PalletRepository(api)
 
     var productsList: ArrayList<Product> = ArrayList()
     lateinit var pickeadosTextView: TextView
@@ -153,13 +157,20 @@ class AsociarProductoActivity : AppCompatActivity() {
             logout()
             Toast.makeText(this@AsociarProductoActivity, "Logout", Toast.LENGTH_SHORT).show()
         }
+        topBar.setConfigButtonVisibility(true)
+        topBar.setOnConfigClickListener {
+            startActivity(Intent(this@AsociarProductoActivity, ConfigActivity::class.java))
+        }
 
         productEditText.setOnEditorActionListener(createEnterListener("product"))
         palletEditText.setOnEditorActionListener(createEnterListener("pallet"))
+        eanEditText.setOnEditorActionListener(createEnterListener("ean"))
 
         submitButton.setOnClickListener { submit() }
 
         changePalletButton.setOnClickListener { resetUIState() }
+
+        updateEanVisibility()
 
         palletEditText.requestFocus()
     }
@@ -172,6 +183,7 @@ class AsociarProductoActivity : AppCompatActivity() {
                 when (type) {
                     "product" -> coroutineProduct()
                     "pallet" -> coroutinePallet()
+                    "ean" -> handleEan()
                 }
                 v.clearFocus()
                 val imm = getSystemService(InputMethodManager::class.java)
@@ -180,6 +192,18 @@ class AsociarProductoActivity : AppCompatActivity() {
             }
             false
         }
+    }
+
+    private fun handleEan() {
+        val ean = eanEditText.text.toString()
+        if (ean.isEmpty()) {
+            Toast.makeText(this@AsociarProductoActivity, "Debe escanear el EAN", Toast.LENGTH_LONG).show()
+            // Se posterga para no ser pisado por el clearFocus() síncrono del listener.
+            eanEditText.post { eanEditText.requestFocus() }
+            return
+        }
+        // El EAN se enviará al hacer el pickeo del serial; no se fija currentEan todavía.
+        productEditText.post { productEditText.requestFocus() }
     }
 
     private fun coroutineProduct() {
@@ -194,23 +218,41 @@ class AsociarProductoActivity : AppCompatActivity() {
                     productEditText.requestFocus()
                     throw Exception("Campo de producto vacío")
                 }
+                var eanToUse: String? = null
                 var product = if (selectedProductType == "COCINA") {
-                    api.getProduct(productSerial.toInt(), "COCINA")
+                    api.getProduct(productSerial, "COCINA")
                 } else if (selectedProductType == "TERMO/CALEFON") {
-                    api.getProduct(productSerial.toInt(), "TERMOTANQUE")
-                } else {
+                    api.getProduct(productSerial, "TERMOTANQUE")
+                } else if (selectedProductType == "IMPORTADO") {
+                    eanToUse = currentEan ?: eanEditText.text.toString()
+                    if (eanToUse.isEmpty()) {
+                        Toast.makeText(this@AsociarProductoActivity, "Debe escanear el EAN", Toast.LENGTH_LONG).show()
+                        eanEditText.requestFocus()
+                        throw Exception("Campo de EAN vacío")
+                    }
+                    api.getProduct(productSerial, "IMPORTADO", eanToUse)
+                }
+                else {
                     throw Exception("Debe seleccionar un tipo de producto para continuar")
                 }
-                handleProduct(product)
+                val added = handleProduct(product)
+                // Solo fijamos/deshabilitamos el EAN si el producto se agregó realmente.
+                if (added && selectedProductType == "IMPORTADO") {
+                    currentEan = eanToUse
+                    eanEditText.isEnabled = false
+                }
             } catch (h: HttpException) {
                 Toast.makeText(this@AsociarProductoActivity, "Error HTTP\n${h.apiMessage()}", Toast.LENGTH_LONG).show()
                 Log.d("API_ERROR", "Error HTTP. ${h.message}")
+                productEditText.requestFocus()
             } catch (i: IOException) {
                 Toast.makeText(this@AsociarProductoActivity, "Error de conexion.", Toast.LENGTH_LONG).show()
                 Log.d("API_ERROR", "Error de conexion. ${i.message}")
+                productEditText.requestFocus()
             } catch (e: Exception) {
                 Toast.makeText(this@AsociarProductoActivity, "Error al obtener datos.", Toast.LENGTH_LONG).show()
                 Log.d("API_ERROR", "Error al obtener datos. ${e.message}")
+                productEditText.requestFocus()
             }
             finally {
                 progressBar.visibility = View.GONE
@@ -219,40 +261,41 @@ class AsociarProductoActivity : AppCompatActivity() {
         }
     }
 
-    private fun handleProduct(product: Product) {
+    private fun handleProduct(product: Product): Boolean {
         if (!product.isAvailable) {
             Log.d("Product", "Producto ya palletizado")
             Toast.makeText(this@AsociarProductoActivity, "Producto ya palletizado", Toast.LENGTH_LONG).show()
             productEditText.text.clear()
             productEditText.requestFocus()
-            return
+            return false
         }
         if (getNotDeletedProducts().count() == product.maxCantByPallet) {
             Log.d("Product", "Cantidad máxima de productos por pallet alcanzada")
             Toast.makeText(this@AsociarProductoActivity, "Cantidad máxima de productos por pallet alcanzada", Toast.LENGTH_LONG).show()
             productEditText.text.clear()
             productEditText.requestFocus()
-            return
+            return false
         }
         if (productsList.contains(product)){
             Log.d("Product", "El producto ya fue pickeado")
             Toast.makeText(this@AsociarProductoActivity, "El producto ya fue pickeado", Toast.LENGTH_LONG).show()
             productEditText.text.clear()
             productEditText.requestFocus()
-            return
+            return false
         }
         if (!productsList.isEmpty() && productsList.last().productId != product.productId) {
             Log.d("Product", "Tipo de producto incorrecto")
             Toast.makeText(this@AsociarProductoActivity, "Tipo de producto incorrecto", Toast.LENGTH_LONG).show()
             productEditText.text.clear()
             productEditText.requestFocus()
-            return
+            return false
         }
 
         productsList.add(product)
         productEditText.text.clear()
         productAdapter.notifyDataSetChanged()
         productEditText.requestFocus()
+        return true
     }
 
     private fun coroutinePallet() {
@@ -268,10 +311,13 @@ class AsociarProductoActivity : AppCompatActivity() {
                 handlePallet(pallet)
             } catch (h: HttpException) {
                 Toast.makeText(this@AsociarProductoActivity, "Error HTTP.\n${h.apiMessage()}", Toast.LENGTH_LONG).show()
+                palletEditText.requestFocus()
             } catch (i: IOException) {
                 Toast.makeText(this@AsociarProductoActivity, "Error de conexion.\n${i.message}", Toast.LENGTH_LONG).show()
+                palletEditText.requestFocus()
             } catch (e: Exception) {
                 Toast.makeText(this@AsociarProductoActivity, "Error al obtener datos.\n${e.message}", Toast.LENGTH_LONG).show()
+                palletEditText.requestFocus()
             } finally {
                 progressBar.visibility = View.GONE
                 isPalletRequestInProgress = false
@@ -284,12 +330,23 @@ class AsociarProductoActivity : AppCompatActivity() {
             for (product in pallet.Products)
                 productsList.add(product)
             productAdapter.notifyDataSetChanged()
+            // selectedProductType se fija de forma sincrónica porque el callback del
+            // spinner (onItemSelected tras setSelection) es asíncrono y un serial escaneado
+            // en esa ventana se procesaría con el tipo anterior.
             if (pallet.Products?.firstOrNull()?.type == "COCINA") {
+                selectedProductType = "COCINA"
                 productSpinner.setSelection(0)
                 productSpinner.isEnabled = false
             }
             else if (pallet.Products?.firstOrNull()?.type == "TERMOTANQUE") {
+                selectedProductType = "TERMO/CALEFON"
                 productSpinner.setSelection(1)
+                productSpinner.isEnabled = false
+            }
+            // ASUNCIÓN: el literal "IMPORTADO" del campo type viene del backend; verificar.
+            else if (pallet.Products?.firstOrNull()?.type == "IMPORTADO") {
+                selectedProductType = "IMPORTADO"
+                productSpinner.setSelection(2)
                 productSpinner.isEnabled = false
             }
             var product = pallet.Products?.firstOrNull()
@@ -297,7 +354,21 @@ class AsociarProductoActivity : AppCompatActivity() {
 
         palletEditText.isEnabled = false
         productEditText.isEnabled = true
-        productEditText.requestFocus()
+        // setSelection() no dispara el listener del spinner de forma sincrónica, por eso
+        // el tipo del pallet se determina directamente (no vía selectedProductType).
+        val palletType = pallet.Products?.firstOrNull()?.type
+        val isImportado = palletType == "IMPORTADO" ||
+            (palletType == null && ::selectedProductType.isInitialized && selectedProductType == "IMPORTADO")
+        eanLayout.visibility = if (isImportado) View.VISIBLE else View.GONE
+        if (isImportado) {
+            // El EAN se pide en el primer pickeo nuevo.
+            eanEditText.isEnabled = true
+            eanEditText.text.clear()
+            currentEan = null
+            eanEditText.requestFocus()
+        } else {
+            productEditText.requestFocus()
+        }
     }
 
     private fun submit() {
@@ -354,13 +425,12 @@ class AsociarProductoActivity : AppCompatActivity() {
         Log.d("LoadControls", "Loading controls")
         prefs = getSharedPreferences("user_prefs", MODE_PRIVATE)
 
-        api = ApiClient.getApiService(this)
-        palletRepository = PalletRepository(api)
-
         progressBar = findViewById(R.id.progressBar)
         palletEditText = findViewById(R.id.palletEditText)
         productEditText = findViewById(R.id.productEditText)
         productEditText.isEnabled = false
+        eanEditText = findViewById(R.id.eanEditText)
+        eanLayout = findViewById(R.id.eanLayout)
         submitButton = findViewById(R.id.submitButton)
 
         productSpinner = findViewById(R.id.productSpinner)
@@ -433,24 +503,41 @@ class AsociarProductoActivity : AppCompatActivity() {
     private fun configProductSpinner() {
         val options2 = resources.getStringArray(R.array.tipo_producto)
         val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, options2)
-        val position = prefs.getString("selectedProductIndex", 0.toString())!!.toInt()
-        productSpinner.setSelection(position)
         adapter.setDropDownViewResource(R.layout.product_dropdown_item)
 
+        val position = prefs.getString("selectedProductIndex", 0.toString())!!.toInt()
+
+        // El tipo se inicializa de forma sincrónica desde prefs; el callback del spinner
+        // es asíncrono y no debe ser la única fuente de verdad al restaurar estado.
+        selectedProductType = options2.getOrElse(position) { options2[0] }
+
+        // El adapter debe asignarse ANTES de setSelection: asignarlo resetea la selección
+        // a 0, por lo que la selección persistida debe fijarse después.
         productSpinner.adapter = adapter
+        productSpinner.setSelection(position)
+
         productSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
                 val selectedOption = parent.getItemAtPosition(position).toString()
-                Toast.makeText(this@AsociarProductoActivity, "Seleccionaste: $selectedOption", Toast.LENGTH_SHORT).show()
                 selectedProductType = selectedOption
                 prefs.edit { putString("selectedProductIndex", position.toString()) }
-                productSpinner.setSelection(prefs.getString("selectedProductIndex", 0.toString())!!.toInt())
+                updateEanVisibility()
             }
 
             override fun onNothingSelected(parent: AdapterView<*>) {
-                Toast.makeText(this@AsociarProductoActivity, "No seleccionaste nada", Toast.LENGTH_SHORT).show()
             }
         }
+    }
+
+    private fun currentTypeOrFallback(): String {
+        if (::selectedProductType.isInitialized) return selectedProductType
+        val idx = prefs.getString("selectedProductIndex", "0")!!.toInt()
+        return resources.getStringArray(R.array.tipo_producto).getOrElse(idx) { "" }
+    }
+
+    private fun updateEanVisibility() {
+        if (!::eanLayout.isInitialized) return
+        eanLayout.visibility = if (currentTypeOrFallback() == "IMPORTADO") View.VISIBLE else View.GONE
     }
 
     private fun resetUIState() {
@@ -462,13 +549,21 @@ class AsociarProductoActivity : AppCompatActivity() {
         productEditText.text.clear()
         productEditText.isEnabled = false
 
+        currentEan = null
+        eanEditText.text.clear()
+        eanEditText.isEnabled = true
+
         productSpinner.isEnabled = true
         productSpinner.setSelection(prefs.getString("selectedProductIndex", 0.toString())!!.toInt())
+
+        updateEanVisibility()
 
         prefs.edit {
             remove("palletText")
             remove("productText")
             remove("productsList")
+            remove("eanText")
+            remove("eanEnabled")
         }
         palletEditText.requestFocus()
     }
@@ -481,6 +576,8 @@ class AsociarProductoActivity : AppCompatActivity() {
             putBoolean("productEditTextEnabled", productEditText.isEnabled)
             putBoolean("productSpinnerEnabled", productSpinner.isEnabled)
             putString("productsList", Gson().toJson(productsList))
+            putString("eanText", eanEditText.text.toString())
+            putBoolean("eanEnabled", eanEditText.isEnabled)
         }
     }
     fun restoreUIState() {
@@ -490,6 +587,13 @@ class AsociarProductoActivity : AppCompatActivity() {
         palletEditText.isEnabled = prefs.getBoolean("palletEditTextEnabled", true)
         productEditText.isEnabled = prefs.getBoolean("productEditTextEnabled", false)
         productSpinner.isEnabled = prefs.getBoolean("productSpinnerEnabled", true)
+
+        val restoredEan = prefs.getString("eanText", "") ?: ""
+        val restoredEanEnabled = prefs.getBoolean("eanEnabled", true)
+        eanEditText.setText(restoredEan)
+        eanEditText.isEnabled = restoredEanEnabled
+        // El EAN queda fijado en la sesión sii el campo está deshabilitado y con valor.
+        currentEan = if (!restoredEanEnabled && restoredEan.isNotEmpty()) restoredEan else null
 
         actualizarContadorPickeados()
 
