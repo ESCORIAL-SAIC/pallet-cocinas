@@ -14,6 +14,7 @@ import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import android.widget.ProgressBar
 import android.view.View
+import android.widget.TextView
 import androidx.appcompat.widget.AppCompatImageButton
 import com.escorial.pallet_cocinas.utils.apiMessage
 
@@ -25,6 +26,10 @@ class LoginActivity : AppCompatActivity() {
     lateinit var etUsername: EditText
     lateinit var etPassword: EditText
     lateinit var progressBar: ProgressBar
+    lateinit var tvVersionCode: TextView
+    lateinit var tvApiVersion: TextView
+    val VERSION_CODE: Int = BuildConfig.VERSION_CODE
+    val VERSION_NAME: String = BuildConfig.VERSION_NAME
 
     val api get() = ApiClient.getApiService(this)
 
@@ -114,6 +119,37 @@ class LoginActivity : AppCompatActivity() {
         configButton.setOnClickListener {
             val intent = Intent(this, ConfigActivity::class.java)
             startActivity(intent)
+        }
+
+        tvVersionCode = findViewById<TextView>(R.id.tvVersionCode)
+        tvVersionCode.text = tvVersionCode.text.toString()
+            .replace("{0}", VERSION_NAME)
+            .replace("{1}", VERSION_CODE.toString())
+
+        tvApiVersion = findViewById<TextView>(R.id.tvApiVersion)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Se carga acá (y no en onCreate) para reflejar la URL recién
+        // configurada al volver de ConfigActivity en el primer arranque.
+        loadApiVersion()
+    }
+
+    private fun loadApiVersion() {
+        // Sin URL configurada no tiene sentido consultar la versión de la API.
+        if (!ApiClient.isConfigured(this)) {
+            tvApiVersion.visibility = View.GONE
+            return
+        }
+        tvApiVersion.visibility = View.VISIBLE
+        tvApiVersion.text = getString(R.string.api_version_loading)
+        lifecycleScope.launch {
+            val apiVersion = ApiClient.getApiVersion(this@LoginActivity)
+            tvApiVersion.text = if (apiVersion != null)
+                getString(R.string.api_version_info).replace("{0}", apiVersion)
+            else
+                getString(R.string.api_version_unavailable)
         }
     }
 

@@ -7,4 +7,8 @@
     </string-array>
     <string name="title_pallet_item">PALLET</string>
     <string name="title_pickeo_pallet_activity">{type} de Pallet</string>
+    <string name="version_info">Ver.: {0} (Comp.: {1})</string>
+    <string name="api_version_info">API: {0}</string>
+    <string name="api_version_loading">API: …</string>
+    <string name="api_version_unavailable">API: no disponible</string>
 </resources>
