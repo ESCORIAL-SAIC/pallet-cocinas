@@ -16,6 +16,10 @@ jobs:
     if: github.event.pull_request.merged == true && github.event.pull_request.head.ref == 'dev'
     runs-on: windows-latest
 
+    outputs:
+      version: ${{ steps.versioning.outputs.version }}
+      versionCode: ${{ steps.versioning.outputs.versionCode }}
+
     env:
       ANDROID_HOME: C:\Android\Sdk
 
@@ -143,6 +147,9 @@ jobs:
 
           echo "version=$stableVersion" >> $env:GITHUB_ENV
           echo "versionCode=$newVersionCode" >> $env:GITHUB_ENV
+          # Exponer como outputs del job para pasarlos al workflow de F-Droid
+          echo "version=$stableVersion" >> $env:GITHUB_OUTPUT
+          echo "versionCode=$newVersionCode" >> $env:GITHUB_OUTPUT
 
       - name: Build release APK
         shell: pwsh
@@ -238,4 +245,8 @@ jobs:
     needs: build
     if: success()
     uses: ./.github/workflows/fdroid-publish.yml
+    with:
+      # Solo el pipeline de main (release estable) fija la versión recomendada.
+      current_version_code: ${{ needs.build.outputs.versionCode }}
+      current_version: ${{ needs.build.outputs.version }}
     secrets: inherit
